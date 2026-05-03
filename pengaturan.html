@@ -1,0 +1,1534 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pengaturan Aplikasi - Nerai Coffee</title>
+    <link rel="stylesheet" href="styles.css">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Poppins', sans-serif;
+            background: #f5f5f5;
+            min-height: 100vh;
+        }
+
+        /* Dashboard Navbar */
+        .dashboard-navbar {
+            background: #6f4e37;
+            padding: 0.8rem 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        .navbar-left {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .navbar-logo {
+            width: 45px;
+            height: 45px;
+            border-radius: 50%;
+            object-fit: contain;
+            background: white;
+            padding: 3px;
+        }
+
+        .navbar-brand {
+            color: white;
+            font-size: 1.4rem;
+            font-weight: 600;
+        }
+
+        .navbar-right {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .admin-info {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            cursor: pointer;
+            padding: 6px 12px;
+            border-radius: 25px;
+            transition: background 0.3s ease;
+        }
+
+        .admin-info:hover {
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        .admin-name {
+            color: white;
+            font-size: 0.95rem;
+            font-weight: 500;
+        }
+
+        .admin-photo {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 2px solid white;
+        }
+
+        /* Main Container */
+        .main-container {
+            padding: 2rem;
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        .page-title {
+            font-size: 1.8rem;
+            color: #333;
+            margin-bottom: 1.5rem;
+            text-align: center;
+            font-weight: 600;
+        }
+
+        /* Settings Container */
+        .settings-container {
+            background: white;
+            border-radius: 16px;
+            padding: 1.5rem;
+            padding-left: calc(1.5rem + 10px);
+            border-left: 4px solid #6f4e37;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+        }
+
+        /* Settings Accordion */
+        .settings-accordion {
+            margin-top: 1rem;
+        }
+
+        .accordion-item {
+            border: 2px solid #e0e0e0;
+            border-radius: 12px;
+            margin-bottom: 1rem;
+            overflow: hidden;
+            transition: all 0.3s ease;
+        }
+
+        .accordion-item:hover {
+            border-color: #6f4e37;
+        }
+
+        .accordion-header {
+            background: white;
+            padding: 1rem 1.2rem;
+            cursor: pointer;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            transition: background 0.3s ease;
+        }
+
+        .accordion-header:hover {
+            background: #fafafa;
+        }
+
+        .accordion-header.active {
+            background: #6f4e37;
+            color: white;
+        }
+
+        .accordion-title {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            font-weight: 600;
+            font-size: 1rem;
+        }
+
+        .accordion-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.1rem;
+            background: #f5f5f5;
+            color: #6f4e37;
+        }
+
+        .accordion-header.active .accordion-icon {
+            background: rgba(255, 255, 255, 0.2);
+            color: white;
+        }
+
+        .accordion-arrow {
+            transition: transform 0.3s ease;
+        }
+
+        .accordion-header.active .accordion-arrow {
+            transform: rotate(180deg);
+        }
+
+        .accordion-content {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.3s ease;
+            background: #fafafa;
+        }
+
+        .accordion-content.active {
+            max-height: 800px;
+        }
+
+        .accordion-body {
+            padding: 10px;
+        }
+
+        /* Form Styles */
+        .form-group {
+            margin-bottom: 1rem;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 0.5rem;
+            color: #333;
+            font-weight: 500;
+            font-size: 0.9rem;
+        }
+
+        .form-select {
+            width: 100%;
+            padding: 0.7rem;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 0.95rem;
+            font-family: 'Poppins', sans-serif;
+            color: #333;
+            background: white;
+            cursor: pointer;
+            transition: border-color 0.3s ease;
+        }
+
+        .form-select:focus {
+            outline: none;
+            border-color: #6f4e37;
+        }
+
+        .btn-add-location {
+            width: 100%;
+            padding: 0.8rem 1rem;
+            background: #6f4e37;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 0.95rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+
+        .btn-add-location:hover {
+            background: #5a3d2d;
+        }
+
+        .btn-add-location i {
+            font-size: 1rem;
+        }
+
+        .form-group-with-btn {
+            display: flex;
+            align-items: flex-end;
+            gap: 10px;
+        }
+
+        .btn-add-location-icon {
+            width: 50px;
+            height: 46px;
+            background: #6f4e37;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: background 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 4px;
+            flex-shrink: 0;
+        }
+
+        .btn-add-location-icon:hover {
+            background: #5a3d2d;
+        }
+
+        .btn-add-location-icon i {
+            font-size: 0.9rem;
+        }
+
+        /* Location Modal */
+        .location-modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.5);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+
+        .location-modal.active {
+            display: flex;
+        }
+
+        .location-modal-content {
+            background: white;
+            border-radius: 16px;
+            padding: 1.5rem;
+            width: 90%;
+            max-width: 500px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+            max-height: 90vh;
+            overflow-y: auto;
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+        }
+
+        .modal-header h3 {
+            margin: 0;
+            color: #333;
+            font-size: 1.2rem;
+        }
+
+        .modal-close {
+            background: none;
+            border: none;
+            font-size: 1.5rem;
+            cursor: pointer;
+            color: #888;
+            transition: color 0.3s ease;
+        }
+
+        .modal-close:hover {
+            color: #333;
+        }
+
+        .modal-body {
+            margin-bottom: 1rem;
+        }
+
+        .map-container {
+            margin-bottom: 1rem;
+        }
+
+        .form-input {
+            width: 100%;
+            padding: 0.7rem;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 0.95rem;
+            font-family: 'Poppins', sans-serif;
+            color: #333;
+            background: white;
+            transition: border-color 0.3s ease;
+        }
+
+        .form-input:focus {
+            outline: none;
+            border-color: #6f4e37;
+        }
+
+        .modal-footer {
+            display: flex;
+            gap: 0.5rem;
+            justify-content: flex-end;
+        }
+
+        .btn-modal {
+            padding: 0.6rem 1.2rem;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+
+        .btn-modal-cancel {
+            background: #f5f5f5;
+            color: #666;
+        }
+
+        .btn-modal-cancel:hover {
+            background: #e0e0e0;
+        }
+
+        .btn-modal-confirm {
+            background: #6f4e37;
+            color: white;
+        }
+
+        .btn-modal-confirm:hover {
+            background: #5a3d2d;
+        }
+
+        .btn-add-payment {
+            width: 100%;
+            padding: 0.8rem 1rem;
+            background: #6f4e37;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 0.95rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+
+        .btn-add-payment:hover {
+            background: #5a3d2d;
+        }
+
+        .btn-add-payment i {
+            font-size: 1rem;
+        }
+
+        .payment-table-container {
+            margin-top: 1rem;
+        }
+
+        .payment-table {
+            width: 100%;
+            border-collapse: collapse;
+            background: white;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        .payment-table th,
+        .payment-table td {
+            padding: 0.8rem;
+            text-align: left;
+            border-bottom: 1px solid #e0e0e0;
+        }
+
+        .payment-table th {
+            background: #f5f5f5;
+            font-weight: 600;
+            color: #6f4e37;
+            font-size: 0.9rem;
+        }
+
+        .payment-table td {
+            color: #333;
+            font-size: 0.9rem;
+        }
+
+        .payment-table tbody tr:last-child td {
+            border-bottom: none;
+        }
+
+        .btn-delete {
+            background: #e74c3c;
+            color: white;
+            border: none;
+            padding: 0.4rem 0.8rem;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 0.85rem;
+            transition: background 0.3s ease;
+        }
+
+        .btn-delete:hover {
+            background: #c0392b;
+        }
+
+        .payment-modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.5);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+
+        .payment-modal.active {
+            display: flex;
+        }
+
+        .payment-modal-content {
+            background: white;
+            border-radius: 16px;
+            padding: 1.5rem;
+            width: 90%;
+            max-width: 500px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+            max-height: 90vh;
+            overflow-y: auto;
+        }
+
+        /* Calendar Styles */
+        .calendar-wrapper {
+            position: sticky;
+            top: 0;
+            background: white;
+            border-radius: 12px;
+            padding: 1rem;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+            max-height: 500px;
+            overflow-y: auto;
+        }
+
+        .calendar-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+            padding-bottom: 0.5rem;
+            border-bottom: 2px solid #f0f0f0;
+        }
+
+        .calendar-header h3 {
+            margin: 0;
+            color: #333;
+            font-size: 1.1rem;
+            font-weight: 600;
+        }
+
+        .calendar-nav-btn {
+            width: 36px;
+            height: 36px;
+            border: none;
+            border-radius: 8px;
+            background: #6f4e37;
+            color: white;
+            cursor: pointer;
+            transition: background 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .calendar-nav-btn:hover {
+            background: #5a3d2d;
+        }
+
+        .calendar-grid {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            gap: 4px;
+            margin-bottom: 0.5rem;
+        }
+
+        .calendar-day-name {
+            text-align: center;
+            font-weight: 600;
+            font-size: 0.8rem;
+            color: #6f4e37;
+            padding: 0.5rem 0;
+        }
+
+        .calendar-day {
+            text-align: center;
+            padding: 0.6rem 0.3rem;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            font-size: 0.9rem;
+            background: #fafafa;
+        }
+
+        .calendar-day:hover {
+            background: #6f4e37;
+            color: white;
+        }
+
+        .calendar-day.empty {
+            background: transparent;
+            cursor: default;
+        }
+
+        .calendar-day.today {
+            background: #6f4e37;
+            color: white;
+            font-weight: 600;
+        }
+
+        .calendar-day.holiday {
+            background: #e57373;
+            color: white;
+        }
+
+        /* Holiday Table */
+        .holiday-table-container {
+            margin-top: 1rem;
+            padding-top: 1rem;
+            border-top: 2px solid #f0f0f0;
+        }
+
+        .holiday-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .holiday-table th,
+        .holiday-table td {
+            padding: 0.5rem;
+            text-align: left;
+            border-bottom: 1px solid #e0e0e0;
+        }
+
+        .holiday-table th {
+            background: #f5f5f5;
+            font-weight: 600;
+            color: #6f4e37;
+        }
+
+        .holiday-table td {
+            color: #333;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .dashboard-navbar {
+                padding: 0.8rem 1rem;
+            }
+
+            .navbar-brand {
+                font-size: 1.1rem;
+            }
+
+            .admin-name {
+                display: none;
+            }
+
+            .main-container {
+                padding: 1rem;
+            }
+
+            .settings-container {
+                padding: 1rem;
+                padding-left: calc(1rem + 10px);
+            }
+
+            .page-title {
+                font-size: 1.5rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Dashboard Navbar -->
+    <nav class="dashboard-navbar">
+        <div class="navbar-left">
+            <img id="navLogo" src="logo.png" alt="" class="navbar-logo">
+            <span id="navBrand" class="navbar-brand"></span>
+        </div>
+        <div class="navbar-right">
+            <div class="admin-info" onclick="showAdminMenu()">
+                <span id="navAdminName" class="admin-name"></span>
+                <img id="navAdminPhoto" src="" alt="" class="admin-photo">
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Container -->
+    <div class="main-container">
+        <h1 class="page-title">Pengaturan Aplikasi</h1>
+
+        <!-- Settings Container -->
+        <div class="settings-container">
+            <!-- Settings Accordion -->
+            <div class="settings-accordion">
+                <!-- Pengaturan Libur -->
+                <div class="accordion-item">
+                    <div class="accordion-header" onclick="toggleAccordion(this)">
+                        <div class="accordion-title">
+                            <div class="accordion-icon">
+                                <i class="fas fa-calendar-times"></i>
+                            </div>
+                            <span>Pengaturan Libur</span>
+                        </div>
+                        <i class="fas fa-chevron-down accordion-arrow"></i>
+                    </div>
+                    <div class="accordion-content">
+                        <div class="accordion-body">
+                            <div class="calendar-wrapper">
+                                <div class="calendar-header">
+                                    <button class="calendar-nav-btn" onclick="changeMonth(-1)">
+                                        <i class="fas fa-chevron-left"></i>
+                                    </button>
+                                    <h3 id="calendarMonthYear"></h3>
+                                    <button class="calendar-nav-btn" onclick="changeMonth(1)">
+                                        <i class="fas fa-chevron-right"></i>
+                                    </button>
+                                </div>
+                                <div class="calendar-grid">
+                                    <div class="calendar-day-name">Ming</div>
+                                    <div class="calendar-day-name">Sen</div>
+                                    <div class="calendar-day-name">Sel</div>
+                                    <div class="calendar-day-name">Rab</div>
+                                    <div class="calendar-day-name">Kam</div>
+                                    <div class="calendar-day-name">Jum</div>
+                                    <div class="calendar-day-name">Sab</div>
+                                </div>
+                                <div class="calendar-grid" id="calendarDays"></div>
+                                <div class="holiday-table-container" id="holidayTableContainer" style="display: none; margin-top: 1rem;">
+                                    <h4 style="margin-bottom: 0.5rem; color: #333;">Informasi Libur</h4>
+                                    <table class="holiday-table">
+                                        <thead>
+                                            <tr>
+                                                <th>No</th>
+                                                <th>Tanggal</th>
+                                                <th>Status</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody id="holidayTableBody">
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Lokasi -->
+                <div class="accordion-item">
+                    <div class="accordion-header" onclick="toggleAccordion(this)">
+                        <div class="accordion-title">
+                            <div class="accordion-icon">
+                                <i class="fas fa-map-marker-alt"></i>
+                            </div>
+                            <span>Lokasi</span>
+                        </div>
+                        <i class="fas fa-chevron-down accordion-arrow"></i>
+                    </div>
+                    <div class="accordion-content">
+                        <div class="accordion-body">
+                            <div class="location-form">
+                                <div class="form-group-with-btn">
+                                    <div class="form-group" style="flex: 1; margin-bottom: 0;">
+                                        <label for="locationSelect">Pilih Lokasi</label>
+                                        <select id="locationSelect" class="form-select" onchange="onLocationSelect()">
+                                            <option value="">-- Pilih Lokasi --</option>
+                                        </select>
+                                    </div>
+                                    <button class="btn-add-location-icon" onclick="showAddLocationModal()">
+                                        <i class="fas fa-plus"></i>
+                                        <i class="fas fa-map-marker-alt"></i>
+                                    </button>
+                                </div>
+                                <div id="selectedLocationDisplay" style="display: none; margin-top: 1rem;">
+                                    <p style="color: #333; font-size: 0.95rem; font-weight: 600; margin-bottom: 0.5rem;">
+                                        <i class="fas fa-map-marker-alt" style="color: #6f4e37;"></i>
+                                        <span id="selectedLocationName">-</span>
+                                    </p>
+                                    <div id="selectedLocationMap" style="width: 100%; height: 250px; border-radius: 8px; margin-bottom: 0.5rem;"></div>
+                                    <p style="color: #333; font-size: 0.9rem;">
+                                        <strong>Koordinat:</strong> <span id="selectedCoords"></span>
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Akun Pembayaran -->
+                <div class="accordion-item">
+                    <div class="accordion-header" onclick="toggleAccordion(this)">
+                        <div class="accordion-title">
+                            <div class="accordion-icon">
+                                <i class="fas fa-wallet"></i>
+                            </div>
+                            <span>Akun Pembayaran</span>
+                        </div>
+                        <i class="fas fa-chevron-down accordion-arrow"></i>
+                    </div>
+                    <div class="accordion-content">
+                        <div class="accordion-body">
+                            <button class="btn-add-payment" onclick="showAddPaymentModal()">
+                                <i class="fas fa-plus"></i> Tambah Akun Pembayaran
+                            </button>
+                            <div class="payment-table-container" id="paymentTableContainer" style="display: none; margin-top: 1rem;">
+                                <h4 style="margin-bottom: 0.5rem; color: #333;">Daftar Akun Pembayaran</h4>
+                                <table class="payment-table">
+                                    <thead>
+                                        <tr>
+                                            <th>No</th>
+                                            <th>Nama Bank/E Wallet</th>
+                                            <th>Nama Pemilik Akun</th>
+                                            <th>Nomor Rekening/Referensi</th>
+                                            <th>Aksi</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="paymentTableBody">
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Add Payment Modal -->
+    <div class="payment-modal" id="paymentModal">
+        <div class="payment-modal-content">
+            <div class="modal-header">
+                <h3>Tambah Akun Pembayaran</h3>
+                <button class="modal-close" onclick="closePaymentModal()">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label for="paymentNo">No</label>
+                    <input type="text" id="paymentNo" class="form-input" placeholder="Masukkan nomor">
+                </div>
+                <div class="form-group">
+                    <label for="paymentBank">Nama Bank/E-Wallet</label>
+                    <input type="text" id="paymentBank" class="form-input" placeholder="Contoh: BCA, DANA, GOPAY">
+                </div>
+                <div class="form-group">
+                    <label for="paymentOwner">Nama Pemilik Akun</label>
+                    <input type="text" id="paymentOwner" class="form-input" placeholder="Masukkan nama pemilik">
+                </div>
+                <div class="form-group">
+                    <label for="paymentNumber">Nomor Rekening/Referensi</label>
+                    <input type="text" id="paymentNumber" class="form-input" placeholder="Masukkan nomor rekening">
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn-modal btn-modal-cancel" onclick="closePaymentModal()">Cancel</button>
+                <button class="btn-modal btn-modal-confirm" onclick="addPaymentAccount()">Tambah</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Add Location Modal -->
+    <div class="location-modal" id="locationModal">
+        <div class="location-modal-content">
+            <div class="modal-header">
+                <h3>Tambah Lokasi</h3>
+                <button class="modal-close" onclick="closeLocationModal()">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="map-container">
+                    <div id="googleMap" style="width: 100%; height: 250px; border-radius: 8px;"></div>
+                </div>
+                <div class="form-group">
+                    <label for="locationNo">No</label>
+                    <input type="text" id="locationNo" class="form-input" placeholder="Masukkan nomor">
+                </div>
+                <div class="form-group">
+                    <label for="locationName">Nama Tempat</label>
+                    <input type="text" id="locationName" class="form-input" placeholder="Masukkan nama tempat">
+                </div>
+                <div class="form-group">
+                    <label for="locationCoords">Titik Koordinat</label>
+                    <input type="text" id="locationCoords" class="form-input" placeholder="Contoh: -6.2088, 106.8456">
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn-modal btn-modal-cancel" onclick="closeLocationModal()">Cancel</button>
+                <button class="btn-modal btn-modal-confirm" onclick="confirmLocation()">Konfirmasi</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Supabase Configuration
+        const supabaseUrl = 'https://fzrmhmedruvzyvyvgudw.supabase.co';
+        const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZ6cm1obWVkcnV2enl2eXZndWR3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzc3NDkzODUsImV4cCI6MjA5MzMyNTM4NX0.0HNIWfahho-IswD2xUDcsADo6GgtN7DgBJj-SlznXNE';
+        let supabaseClient;
+        try {
+            supabaseClient = window.supabase.createClient(supabaseUrl, supabaseKey);
+        } catch(e) {
+            console.error('Supabase init error:', e);
+        }
+
+        // Load navbar data from Supabase
+        async function loadNavbarData() {
+            if (!supabaseClient) return;
+            try {
+                const { data, error } = await supabaseClient
+                    .from('identitas')
+                    .select('*')
+                    .limit(1);
+                
+                if (error) {
+                    console.error('Load navbar error:', error);
+                    return;
+                }
+                
+                if (data && data.length > 0) {
+                    const row = data[0];
+                    if (row.logo_usaha) document.getElementById('navLogo').src = row.logo_usaha;
+                    if (row.nama_usaha) document.getElementById('navBrand').textContent = row.nama_usaha;
+                    if (row.owner) document.getElementById('navAdminName').textContent = row.owner;
+                    if (row.photo_owner) document.getElementById('navAdminPhoto').src = row.photo_owner;
+                }
+            } catch(e) {
+                console.error('Load navbar error:', e);
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', function() {
+            loadNavbarData();
+        });
+
+        // Toggle Accordion
+        function toggleAccordion(header) {
+            const content = header.nextElementSibling;
+            const isActive = header.classList.contains('active');
+            
+            // Close all accordion items
+            document.querySelectorAll('.accordion-header').forEach(h => {
+                h.classList.remove('active');
+                h.nextElementSibling.classList.remove('active');
+            });
+            
+            // Open clicked item if it wasn't active
+            if (!isActive) {
+                header.classList.add('active');
+                content.classList.add('active');
+            }
+        }
+
+        // Show Admin Menu
+        function showAdminMenu() {
+            alert('Menu admin clicked');
+        }
+
+        // Show Add Location Modal
+        async function showAddLocationModal() {
+            document.getElementById('locationModal').classList.add('active');
+            initMap();
+            await loadLocationsFromSupabase();
+        }
+
+        // Show Add Payment Modal
+        async function showAddPaymentModal() {
+            document.getElementById('paymentModal').classList.add('active');
+            
+            // Calculate next number
+            if (!supabaseClient) return;
+            try {
+                const { data, error } = await supabaseClient
+                    .from('akunpembayaran')
+                    .select('no')
+                    .order('no', { ascending: false })
+                    .limit(1);
+                
+                if (error) {
+                    console.error('Load payment count error:', error);
+                    document.getElementById('paymentNo').value = '1';
+                    return;
+                }
+                
+                const nextNo = data && data.length > 0 ? data[0].no + 1 : 1;
+                document.getElementById('paymentNo').value = nextNo;
+            } catch(e) {
+                console.error('Load payment count error:', e);
+                document.getElementById('paymentNo').value = '1';
+            }
+        }
+
+        // Close Payment Modal
+        function closePaymentModal() {
+            document.getElementById('paymentModal').classList.remove('active');
+            // Reset form
+            document.getElementById('paymentNo').value = '';
+            document.getElementById('paymentBank').value = '';
+            document.getElementById('paymentOwner').value = '';
+            document.getElementById('paymentNumber').value = '';
+        }
+
+        // Add Payment Account
+        async function addPaymentAccount() {
+            const no = document.getElementById('paymentNo').value;
+            const bank = document.getElementById('paymentBank').value;
+            const owner = document.getElementById('paymentOwner').value;
+            const number = document.getElementById('paymentNumber').value;
+
+            if (!no || !bank || !owner || !number) {
+                alert('Mohon lengkapi semua data akun pembayaran');
+                return;
+            }
+
+            if (!supabaseClient) {
+                alert('Gagal terhubung ke database');
+                return;
+            }
+
+            try {
+                const { error } = await supabaseClient
+                    .from('akunpembayaran')
+                    .insert([{
+                        no: parseInt(no),
+                        nama_akun: bank,
+                        nama_pemilik: owner,
+                        norek: number
+                    }]);
+                
+                if (error) {
+                    console.error('Save payment account error:', error);
+                    alert('Gagal menyimpan akun pembayaran: ' + error.message);
+                    return;
+                }
+
+                // Reload payment accounts
+                await loadPaymentAccountsFromSupabase();
+                closePaymentModal();
+                alert('Akun pembayaran berhasil ditambahkan!');
+            } catch(e) {
+                console.error('Save payment account error:', e);
+                alert('Gagal menyimpan akun pembayaran');
+            }
+        }
+
+        // Load payment accounts from Supabase
+        async function loadPaymentAccountsFromSupabase() {
+            if (!supabaseClient) return;
+            try {
+                const { data, error } = await supabaseClient
+                    .from('akunpembayaran')
+                    .select('*')
+                    .order('no', { ascending: true });
+                
+                if (error) {
+                    console.error('Load payment accounts error:', error);
+                    return;
+                }
+                
+                if (data && data.length > 0) {
+                    const tableContainer = document.getElementById('paymentTableContainer');
+                    const tableBody = document.getElementById('paymentTableBody');
+                    
+                    tableContainer.style.display = 'block';
+                    tableBody.innerHTML = '';
+                    
+                    data.forEach(row => {
+                        const tr = document.createElement('tr');
+                        tr.innerHTML = `
+                            <td>${row.no}</td>
+                            <td>${row.nama_akun}</td>
+                            <td>${row.nama_pemilik}</td>
+                            <td>${row.norek}</td>
+                            <td>
+                                <button class="btn-delete" onclick="deletePaymentAccount(${row.no})">Hapus</button>
+                            </td>
+                        `;
+                        tableBody.appendChild(tr);
+                    });
+                }
+            } catch(e) {
+                console.error('Load payment accounts error:', e);
+            }
+        }
+
+        // Delete payment account
+        async function deletePaymentAccount(no) {
+            if (!confirm('Apakah Anda yakin ingin menghapus akun pembayaran ini?')) {
+                return;
+            }
+            
+            if (!supabaseClient) {
+                alert('Gagal terhubung ke database');
+                return;
+            }
+            
+            try {
+                const { error } = await supabaseClient
+                    .from('akunpembayaran')
+                    .delete()
+                    .eq('no', no);
+                
+                if (error) {
+                    console.error('Delete payment account error:', error);
+                    alert('Gagal menghapus akun pembayaran');
+                    return;
+                }
+                
+                await loadPaymentAccountsFromSupabase();
+                alert('Akun pembayaran berhasil dihapus');
+            } catch(e) {
+                console.error('Delete payment account error:', e);
+                alert('Gagal menghapus akun pembayaran');
+            }
+        }
+
+        // Load locations from Supabase
+        async function loadLocationsFromSupabase() {
+            if (!supabaseClient) return;
+            try {
+                const { data, error } = await supabaseClient
+                    .from('lokasi')
+                    .select('no, nama_tempat, koordinat')
+                    .order('no', { ascending: true });
+                
+                if (error) {
+                    console.error('Load locations error:', error);
+                    return;
+                }
+                
+                // Calculate next number
+                const nextNo = data ? data.length + 1 : 1;
+                document.getElementById('locationNo').value = nextNo;
+                
+                // Populate dropdown
+                const select = document.getElementById('locationSelect');
+                select.innerHTML = '<option value="">-- Pilih Lokasi --</option>';
+                
+                if (data && data.length > 0) {
+                    data.forEach(row => {
+                        const option = document.createElement('option');
+                        option.value = row.koordinat;
+                        option.textContent = row.nama_tempat;
+                        option.dataset.nama = row.nama_tempat;
+                        select.appendChild(option);
+                    });
+                }
+            } catch(e) {
+                console.error('Load locations error:', e);
+            }
+        }
+
+        // Load current location from lokasisekarang
+        async function loadCurrentLocationFromSupabase() {
+            if (!supabaseClient) return;
+            try {
+                const { data, error } = await supabaseClient
+                    .from('lokasisekarang')
+                    .select('nama_lokasi, koordinat')
+                    .limit(1);
+                
+                if (error) {
+                    console.error('Load current location error:', error);
+                    return;
+                }
+                
+                if (data && data.length > 0) {
+                    const location = data[0];
+                    document.getElementById('selectedLocationName').textContent = location.nama_lokasi;
+                    document.getElementById('selectedCoords').textContent = location.koordinat;
+                    document.getElementById('selectedLocationDisplay').style.display = 'block';
+                    
+                    // Initialize map with current location
+                    setTimeout(() => {
+                        displaySelectedLocation(location.koordinat);
+                    }, 500);
+                }
+            } catch(e) {
+                console.error('Load current location error:', e);
+            }
+        }
+
+        // Handle location select
+        async function onLocationSelect() {
+            const select = document.getElementById('locationSelect');
+            const selectedOption = select.options[select.selectedIndex];
+            
+            if (!selectedOption || !selectedOption.value) {
+                document.getElementById('selectedLocationDisplay').style.display = 'none';
+                return;
+            }
+
+            const namaLokasi = selectedOption.dataset.nama;
+            const koordinat = selectedOption.value;
+
+            if (!supabaseClient) {
+                console.error('Supabase client not initialized');
+                return;
+            }
+
+            try {
+                // Save to lokasisekarang table
+                const { data: existingData } = await supabaseClient
+                    .from('lokasisekarang')
+                    .select('no')
+                    .limit(1);
+
+                const nextNo = existingData && existingData.length > 0 ? existingData.length + 1 : 1;
+
+                // Delete existing record if any
+                await supabaseClient
+                    .from('lokasisekarang')
+                    .delete()
+                    .neq('no', 0); // Delete all records
+
+                // Insert new record
+                const { error } = await supabaseClient
+                    .from('lokasisekarang')
+                    .insert([{
+                        no: nextNo,
+                        nama_lokasi: namaLokasi,
+                        koordinat: koordinat
+                    }]);
+
+                if (error) {
+                    console.error('Save lokasisekarang error:', error);
+                    return;
+                }
+
+                // Display map and coordinates
+                displaySelectedLocation(koordinat);
+            } catch(e) {
+                console.error('Location select error:', e);
+            }
+        }
+
+        // Display selected location on map
+        let selectedLocationMap;
+        let selectedLocationMarker;
+
+        function displaySelectedLocation(koordinat) {
+            const coords = koordinat.split(',').map(c => parseFloat(c.trim()));
+            if (coords.length !== 2 || isNaN(coords[0]) || isNaN(coords[1])) {
+                console.error('Invalid coordinates format');
+                return;
+            }
+
+            const [lat, lng] = coords;
+
+            // Show display
+            document.getElementById('selectedLocationDisplay').style.display = 'block';
+            document.getElementById('selectedCoords').textContent = koordinat;
+
+            // Initialize map if not already
+            if (!selectedLocationMap) {
+                selectedLocationMap = L.map('selectedLocationMap').setView([lat, lng], 15);
+                L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                    attribution: '© OpenStreetMap contributors'
+                }).addTo(selectedLocationMap);
+            }
+
+            // Remove existing marker
+            if (selectedLocationMarker) {
+                selectedLocationMap.removeLayer(selectedLocationMarker);
+            }
+
+            // Add marker and fly to location
+            selectedLocationMap.flyTo([lat, lng], 15);
+            selectedLocationMarker = L.marker([lat, lng]).addTo(selectedLocationMap)
+                .bindPopup('Lokasi Terpilih')
+                .openPopup();
+        }
+
+        // Close Location Modal
+        function closeLocationModal() {
+            document.getElementById('locationModal').classList.remove('active');
+            // Reset form
+            document.getElementById('locationNo').value = '';
+            document.getElementById('locationName').value = '';
+            document.getElementById('locationCoords').value = '';
+        }
+
+        // Initialize Map using Leaflet
+        let map;
+        let marker;
+
+        function initMap() {
+            if (typeof L === 'undefined') {
+                console.error('Leaflet not loaded');
+                return;
+            }
+
+            // Default location (Jakarta)
+            const defaultLocation = [-6.2088, 106.8456];
+
+            map = L.map('googleMap').setView(defaultLocation, 13);
+
+            // Add OpenStreetMap tile layer
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                attribution: '© OpenStreetMap contributors'
+            }).addTo(map);
+
+            // Add click listener
+            map.on('click', function(event) {
+                const lat = event.latlng.lat;
+                const lng = event.latlng.lng;
+                
+                // Update input field
+                document.getElementById('locationCoords').value = `${lat.toFixed(6)}, ${lng.toFixed(6)}`;
+                
+                // Remove existing marker
+                if (marker) {
+                    map.removeLayer(marker);
+                }
+                
+                // Add new marker
+                marker = L.marker([lat, lng]).addTo(map)
+                    .bindPopup('Lokasi Terpilih')
+                    .openPopup();
+            });
+        }
+
+        // Confirm Location
+        async function confirmLocation() {
+            const no = document.getElementById('locationNo').value;
+            const nama = document.getElementById('locationName').value;
+            const coords = document.getElementById('locationCoords').value;
+
+            if (!no || !nama || !coords) {
+                alert('Mohon lengkapi semua data lokasi');
+                return;
+            }
+
+            if (!supabaseClient) {
+                alert('Gagal terhubung ke database');
+                return;
+            }
+
+            try {
+                const { error } = await supabaseClient
+                    .from('lokasi')
+                    .insert([{
+                        no: parseInt(no),
+                        nama_tempat: nama,
+                        koordinat: coords
+                    }]);
+                
+                if (error) {
+                    console.error('Save location error:', error);
+                    alert('Gagal menyimpan lokasi: ' + error.message);
+                    return;
+                }
+
+                // Reload locations
+                await loadLocationsFromSupabase();
+                closeLocationModal();
+                alert('Lokasi berhasil ditambahkan!');
+            } catch(e) {
+                console.error('Save location error:', e);
+                alert('Gagal menyimpan lokasi');
+            }
+        }
+
+        // Calendar functionality
+        let currentDate = new Date();
+        const holidays = {}; // Object untuk menyimpan tanggal libur
+
+        // Load holidays from Supabase
+        async function loadHolidaysFromSupabase() {
+            if (!supabaseClient) return;
+            try {
+                const { data, error } = await supabaseClient
+                    .from('libur')
+                    .select('*');
+                
+                if (error) {
+                    console.error('Load holidays error:', error);
+                    return;
+                }
+                
+                if (data) {
+                    data.forEach(row => {
+                        holidays[row.tanggal] = row.status;
+                    });
+                    renderCalendar();
+                    updateHolidayTable();
+                }
+            } catch(e) {
+                console.error('Load holidays error:', e);
+            }
+        }
+
+        // Save holiday to Supabase
+        async function saveHolidayToSupabase(tanggal, status) {
+            if (!supabaseClient) return;
+            try {
+                const { error } = await supabaseClient
+                    .from('libur')
+                    .insert([{ tanggal: tanggal, status: status }]);
+                
+                if (error) {
+                    console.error('Save holiday error:', error);
+                    return false;
+                }
+                return true;
+            } catch(e) {
+                console.error('Save holiday error:', e);
+                return false;
+            }
+        }
+
+        // Delete holiday from Supabase
+        async function deleteHolidayFromSupabase(tanggal) {
+            if (!supabaseClient) return;
+            try {
+                const { error } = await supabaseClient
+                    .from('libur')
+                    .delete()
+                    .eq('tanggal', tanggal);
+                
+                if (error) {
+                    console.error('Delete holiday error:', error);
+                    return false;
+                }
+                return true;
+            } catch(e) {
+                console.error('Delete holiday error:', e);
+                return false;
+            }
+        }
+
+        function renderCalendar() {
+            const year = currentDate.getFullYear();
+            const month = currentDate.getMonth();
+
+            const monthNames = ['Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni', 
+                               'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'];
+            document.getElementById('calendarMonthYear').textContent = `${monthNames[month]} ${year}`;
+
+            const firstDay = new Date(year, month, 1).getDay();
+            const daysInMonth = new Date(year, month + 1, 0).getDate();
+
+            const calendarDays = document.getElementById('calendarDays');
+            calendarDays.innerHTML = '';
+
+            // Empty cells for days before the first day of month
+            for (let i = 0; i < firstDay; i++) {
+                const emptyDay = document.createElement('div');
+                emptyDay.className = 'calendar-day empty';
+                calendarDays.appendChild(emptyDay);
+            }
+
+            // Days of the month
+            const today = new Date();
+            for (let day = 1; day <= daysInMonth; day++) {
+                const dayElement = document.createElement('div');
+                dayElement.className = 'calendar-day';
+                dayElement.textContent = day;
+
+                const dateStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+
+                // Check if today
+                if (day === today.getDate() && month === today.getMonth() && year === today.getFullYear()) {
+                    dayElement.classList.add('today');
+                }
+
+                // Check if holiday
+                if (holidays[dateStr]) {
+                    dayElement.classList.add('holiday');
+                }
+
+                // Toggle holiday on click
+                dayElement.onclick = async function() {
+                    if (!this.classList.contains('empty')) {
+                        if (holidays[dateStr]) {
+                            // Delete from Supabase
+                            const success = await deleteHolidayFromSupabase(dateStr);
+                            if (success) {
+                                delete holidays[dateStr];
+                                this.classList.remove('holiday');
+                                updateHolidayTable();
+                            }
+                        } else {
+                            // Save to Supabase
+                            const success = await saveHolidayToSupabase(dateStr, 'Tutup');
+                            if (success) {
+                                holidays[dateStr] = 'Tutup';
+                                this.classList.add('holiday');
+                                updateHolidayTable();
+                            }
+                        }
+                    }
+                };
+
+                calendarDays.appendChild(dayElement);
+            }
+        }
+
+        function changeMonth(delta) {
+            currentDate.setMonth(currentDate.getMonth() + delta);
+            renderCalendar();
+        }
+
+        async function updateHolidayTable() {
+            if (!supabaseClient) return;
+            const tableContainer = document.getElementById('holidayTableContainer');
+            const tableBody = document.getElementById('holidayTableBody');
+            
+            try {
+                const { data, error } = await supabaseClient
+                    .from('libur')
+                    .select('no, tanggal, status')
+                    .order('no', { ascending: true });
+                
+                if (error) {
+                    console.error('Load table error:', error);
+                    return;
+                }
+                
+                if (data && data.length > 0) {
+                    tableContainer.style.display = 'block';
+                    tableBody.innerHTML = '';
+                    
+                    data.forEach(row => {
+                        const date = new Date(row.tanggal);
+                        const options = { weekday: 'short', day: 'numeric', month: 'short', year: 'numeric' };
+                        const formattedDate = date.toLocaleDateString('id-ID', options);
+                        
+                        const statusColor = row.status === 'Tutup' ? '#e57373' : '#4caf50';
+                        
+                        const tr = document.createElement('tr');
+                        tr.innerHTML = `
+                            <td>${row.no}</td>
+                            <td>${formattedDate}</td>
+                            <td><span style="color: ${statusColor}; font-weight: 600;">${row.status}</span></td>
+                        `;
+                        tableBody.appendChild(tr);
+                    });
+                } else {
+                    tableContainer.style.display = 'none';
+                }
+            } catch(e) {
+                console.error('Update table error:', e);
+            }
+        }
+
+        // Initialize calendar on load
+        document.addEventListener('DOMContentLoaded', function() {
+            loadNavbarData();
+            renderCalendar();
+            loadHolidaysFromSupabase();
+            loadLocationsFromSupabase();
+            loadCurrentLocationFromSupabase();
+            loadPaymentAccountsFromSupabase();
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,485 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title id="pageTitle">Pesan Online & Take Away</title>
+    <link rel="stylesheet" href="styles.css">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <style>
+        .holiday-modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.7);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 9999;
+        }
+
+        .holiday-modal.active {
+            display: flex;
+        }
+
+        .holiday-modal-content {
+            background: white;
+            border-radius: 20px;
+            padding: 2.5rem;
+            text-align: center;
+            max-width: 400px;
+            width: 90%;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+            animation: modalPop 0.3s ease-out;
+        }
+
+        @keyframes modalPop {
+            0% {
+                transform: scale(0.8);
+                opacity: 0;
+            }
+            100% {
+                transform: scale(1);
+                opacity: 1;
+            }
+        }
+
+        .holiday-modal-icon {
+            width: 80px;
+            height: 80px;
+            background: #ffebee;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 1.5rem;
+            font-size: 2.5rem;
+            color: #e57373;
+        }
+
+        .holiday-modal-content h3 {
+            color: #333;
+            margin-bottom: 0.8rem;
+            font-size: 1.5rem;
+        }
+
+        .holiday-modal-content p {
+            color: #666;
+            margin-bottom: 1.5rem;
+            font-size: 1rem;
+            line-height: 1.5;
+        }
+
+        .holiday-modal-content .btn {
+            width: 100%;
+            padding: 0.8rem 1.5rem;
+            font-size: 1rem;
+            text-align: center;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .location-section {
+            margin-bottom: 3rem;
+        }
+    </style>
+</head>
+<body>
+    <!-- Header -->
+    <header class="header">
+        <div class="container">
+            <div class="nav-wrapper">
+                <div class="logo">
+                    <img id="navLogo" src="logo.png" alt="" class="logo-img">
+                    <span id="navBrand"></span>
+                </div>
+                <button class="cart-btn" onclick="toggleCart()"><i class="fas fa-shopping-cart"></i><span class="cart-count" id="cartCount">0</span></button><button class="orders-btn" onclick="showOrders()" title="Lihat Pesanan Anda"><i class="fas fa-clipboard-list"></i></button>
+            </div>
+        </div>
+    </header>
+
+    <!-- Hero Section -->
+    <section class="hero">
+        <div class="container">
+            <div class="hero-content">
+                <h1>Selamat Datang di <span id="heroBrand">Nerai Coffee</span> Online</h1>
+                <p>Kopi premium untuk hari Anda. Pesan sekarang dan nikmati kesegaran kopi terbaik!</p>
+                <div class="hero-buttons">
+                    <button class="btn btn-primary" onclick="scrollToMenu()">
+                        <i class="fas fa-coffee"></i> Pesan Sekarang
+                    </button>
+                    <button class="btn btn-outline" onclick="showInfo()">
+                        <i class="fas fa-info-circle"></i> Info Lebih Lanjut
+                    </button>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- About Nerai Section -->
+    <section class="about" id="about">
+        <div class="container">
+            <div class="about-content">
+                <img id="aboutLogo" src="logo.png" alt="" class="about-logo">
+                <h2 class="section-title">About <span id="aboutBrand">Nerai</span></h2>
+                <div class="about-text">
+                    <p><span class="brand-name">Nerai Coffee</span> lahir dari cinta sejati terhadap secangkir kopi yang sempurna. Berawal dari sekadar pecinta kopi yang setiap hari menikmati ritual menyeduh kopi, kami memulai perjalanan untuk memahami lebih dalam seni meracik kopi.</p>
+                    <p>Dengan tekad untuk berbagi pengalaman kopi terbaik, kami belajar dari para ahli, mengeksplorasi berbagai biji kopi dari penjuru Indonesia, hingga akhirnya menciptakan racikan khas yang menjadi ciri khas <span class="brand-short">Nerai</span>.</p>
+                    <p>Kini, <span class="brand-name">Nerai Coffee</span> hadir sebagai gerai mobile yang fleksibel, membawa kehangatan dan cita rasa kopi premium ke berbagai lokasi. Fleksibilitas lokasi kami memungkinkan lebih banyak orang menikmati kopi berkualitas tanpa harus pergi jauh.</p>
+                </div>
+                <div class="about-owner">
+                    <div class="owner-photo">
+                        <img id="ownerPhoto" src="owner.jpg" alt="Owner">
+                    </div>
+                    <span class="owner-label">Owner</span>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Features Section -->
+    <section class="features">
+        <div class="container">
+            <div class="feature-text-container">
+                <div class="feature-text" id="featureText">
+                    <i class="fas fa-mobile-alt"></i>
+                    <h3>Pesan Online</h3>
+                    <p>Pesan mudah melalui smartphone Anda</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Menu Section -->
+    <section class="menu" id="menu">
+        <div class="container">
+            <h2 class="section-title">Menu Kami</h2>
+            <div class="menu-categories">
+                <button class="category-btn active" onclick="filterMenu('all')">All</button>
+                <button class="category-btn" onclick="filterMenu('coffee')">Coffee</button>
+                <button class="category-btn" onclick="filterMenu('noncoffee')">Non-Coffee</button>
+                <button class="category-btn" onclick="filterMenu('food')">Snack</button>
+            </div>
+        </div>
+        <div class="menu-container">
+            <div class="container">
+                <div class="menu-grid" id="menuGrid">
+                    <!-- Menu items will be populated by JavaScript -->
+                </div>
+            </div>
+        </div>
+            </section>
+
+    <!-- Location Section -->
+    <section class="location-section" id="location">
+        <div class="container">
+            <div class="location-content">
+                <h2 class="section-title">Lokasi Kami</h2>
+                <div class="location-info">
+                    <div class="location-name">
+                        <i class="fas fa-map-marker-alt"></i>
+                        <span id="locationName">Memuat lokasi...</span>
+                    </div>
+                </div>
+                <div id="locationMap" style="width: 100%; height: 300px; border-radius: 12px; margin-top: 1rem;"></div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Catering Section -->
+    <section class="catering" id="catering">
+        <div class="container">
+            <div class="catering-content">
+                <div class="catering-icon">
+                    <i class="fas fa-glass-cheers"></i>
+                </div>
+                <h3>Pesanan Besar untuk Event</h3>
+                <p>Kami menerima pesanan besar untuk berbagai acara — mulai dari seminar, gathering, pernikahan, hingga festival. Hubungi kami untuk mendapatkan penawaran khusus dan layanan kopi bar langsung di lokasi acara Anda.</p>
+                <a id="waLink" href="#" class="btn btn-primary" target="_blank">
+                    <i class="fab fa-whatsapp"></i> Hubungi Kami
+                </a>
+            </div>
+        </div>
+    </section>
+
+    <!-- Cart Sidebar -->
+    <div class="cart-sidebar" id="cartSidebar">
+        <div class="cart-header">
+            <h3>Keranjang Belanja</h3>
+            <button class="close-btn" onclick="toggleCart()">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+        <div class="cart-items" id="cartItems">
+            <p class="empty-cart">Keranjang masih kosong</p>
+        </div>
+        <div class="cart-footer">
+            <div class="cart-total">
+                <span>Total:</span>
+                <span id="cartTotal">Rp 0</span>
+            </div>
+            <button class="btn btn-primary" onclick="checkout()">Checkout</button>
+        </div>
+    </div>
+
+    <!-- Menu Detail Modal -->
+    <div class="modal" id="menuModal">
+        <div class="modal-content menu-modal-content">
+            <div class="modal-header">
+                <h3 id="menuModalTitle">Menu Detail</h3>
+                <button class="close-btn" onclick="closeMenuModal()">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div class="menu-detail">
+                    <img id="menuModalImage" src="" alt="" class="menu-modal-image">
+                    <div class="menu-modal-info">
+                        <h4 id="menuModalName"></h4>
+                        <p id="menuModalDescription" class="menu-modal-description"></p>
+                        <div class="menu-modal-price" id="menuModalPrice"></div>
+                        <div class="menu-modal-actions">
+                            <div class="quantity-selector">
+                                <button class="quantity-btn" onclick="decreaseModalQuantity()">-</button>
+                                <span id="modalQuantity">1</span>
+                                <button class="quantity-btn" onclick="increaseModalQuantity()">+</button>
+                            </div>
+                            <button class="btn btn-primary add-to-cart-modal-btn" onclick="addToCartFromModal()">
+                                <i class="fas fa-shopping-cart"></i> Tambah ke Keranjang
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Order Modal -->
+    <div class="modal" id="orderModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Detail Pesanan</h3>
+                <button class="close-btn" onclick="closeOrderModal()">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="modal-body">
+                <form id="orderForm">
+                    <div class="form-group">
+                        <label for="customerName">Nama Lengkap</label>
+                        <input type="text" id="customerName" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="customerPhone">Nomor WhatsApp</label>
+                        <input type="tel" id="customerPhone" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="orderType">Jenis Pesanan</label>
+                        <select id="orderType" required>
+                            <option value="takeaway">Take Away</option>
+                            <option value="delivery">Delivery (jika tersedia)</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="orderTime">Waktu Pengambilan</label>
+                        <input type="datetime-local" id="orderTime" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="notes">Catatan (opsional)</label>
+                        <textarea id="notes" rows="3"></textarea>
+                    </div>
+                    <div class="order-summary" id="orderSummary"></div>
+                    <button type="submit" class="btn btn-primary">Konfirmasi Pesanan</button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-section">
+                    <h4 id="footerBrand">Nerai Coffee</h4>
+                    <p>Kopi premium untuk hari Anda</p>
+                    <div class="social-links">
+                        <a href="#"><i class="fab fa-instagram"></i></a>
+                        <a href="#"><i class="fab fa-facebook"></i></a>
+                        <a href="#"><i class="fab fa-whatsapp"></i></a>
+                    </div>
+                </div>
+                <div class="footer-section">
+                    <h4>Kontak</h4>
+                    <p><i class="fas fa-phone"></i> +62 812-3456-7890</p>
+                    <p><i class="fas fa-envelope"></i> info@neraicoffee.com</p>
+                    <p><i class="fas fa-map-marker-alt"></i> Muntok, Bangka Barat</p>
+                </div>
+                <div class="footer-section">
+                    <h4>Jam Buka</h4>
+                    <p>Senin - Jumat: 06:00 - 22:00</p>
+                    <p>Sabtu - Minggu: 07:00 - 23:00</p>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <p>&copy; 2024 <span id="footerCopyBrand">Nerai Coffee</span>. All rights reserved.</p>
+                <div class="footer-links">
+                    <a href="#" onclick="showPrivacyPolicy()">Kebijakan Privasi</a>
+                    <span>•</span>
+                    <a href="#" onclick="showTerms()">Syarat & Ketentuan</a>
+                    <span>•</span>
+                    <a href="#" onclick="showDeveloper()">Developer</a>
+                </div>
+                <button class="footer-login-btn" onclick="showLogin()" title="Login">
+                    <i class="fas fa-user-lock"></i>
+                </button>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Login Modal -->
+    <div class="login-modal" id="loginModal">
+        <div class="login-modal-content">
+            <button class="login-close-btn" onclick="closeLoginModal()">
+                <i class="fas fa-times"></i>
+            </button>
+            <div class="login-header">
+                <i class="fas fa-user-shield"></i>
+                <h3>Login Admin</h3>
+            </div>
+            <form class="login-form" onsubmit="handleLogin(event)">
+                <div class="form-group">
+                    <label for="adminUsername">Username</label>
+                    <input type="text" id="adminUsername" name="username" required placeholder="Masukkan username">
+                </div>
+                <div class="form-group">
+                    <label for="adminPassword">Password</label>
+                    <div class="password-input-wrapper">
+                        <input type="password" id="adminPassword" name="password" required placeholder="Masukkan password">
+                        <button type="button" class="toggle-password-btn" onclick="togglePasswordVisibility()">
+                            <i class="fas fa-eye" id="passwordToggleIcon"></i>
+                        </button>
+                    </div>
+                </div>
+                <div class="login-btn-wrapper">
+                    <button type="submit" class="btn btn-primary">Login</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Orders Modal -->
+    <div class="orders-modal" id="ordersModal">
+        <div class="orders-modal-content">
+            <button class="orders-close-btn" onclick="closeOrdersModal()">
+                <i class="fas fa-times"></i>
+            </button>
+            <div class="orders-header">
+                <i class="fas fa-clipboard-list"></i>
+                <h3>Lihat Pesanan Anda</h3>
+            </div>
+            <form class="orders-form" onsubmit="checkOrder(event)">
+                <div class="form-group">
+                    <label for="transactionId">Id Transaksi</label>
+                    <input type="text" id="transactionId" name="transactionId" required placeholder="Masukkan Id Transaksi">
+                </div>
+                <div class="orders-btn-wrapper">
+                    <button type="submit" class="btn btn-primary">Cek</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Checkout Modal -->
+    <div class="checkout-modal" id="checkoutModal">
+        <div class="checkout-modal-content">
+            <button class="checkout-close-btn" onclick="closeCheckoutModal()">
+                <i class="fas fa-times"></i>
+            </button>
+            <div class="checkout-header">
+                <i class="fas fa-credit-card"></i>
+                <h3>Checkout</h3>
+            </div>
+            <form class="checkout-form" onsubmit="processCheckout(event)">
+                <div class="form-group">
+                    <label for="transactionIdCheckout">Id Transaksi</label>
+                    <input type="text" id="transactionIdCheckout" name="transactionId" readonly placeholder="Auto-generated">
+                </div>
+                <div class="form-group">
+                    <label for="customerName">Nama</label>
+                    <input type="text" id="customerName" name="customerName" required placeholder="Masukkan nama lengkap">
+                </div>
+                <div class="form-group">
+                    <label for="customerAddress">Alamat</label>
+                    <textarea id="customerAddress" name="customerAddress" rows="3" required placeholder="Masukkan alamat lengkap"></textarea>
+                </div>
+                <div class="form-group">
+                    <label for="customerPhone">Telepon/WA</label>
+                    <input type="tel" id="customerPhone" name="customerPhone" required placeholder="Masukkan nomor telepon/WA">
+                </div>
+                <div class="order-summary-section">
+                    <h4>Ringkasan Pesanan</h4>
+                    <table class="order-summary-table" id="checkoutOrderTable">
+                        <thead>
+                            <tr>
+                                <th>Produk</th>
+                                <th>Qty</th>
+                                <th>Harga</th>
+                                <th>Subtotal</th>
+                            </tr>
+                        </thead>
+                        <tbody id="checkoutOrderTableBody">
+                            <!-- Order items will be populated by JavaScript -->
+                        </tbody>
+                        <tfoot>
+                            <tr class="total-row">
+                                <td colspan="3"><strong>Total:</strong></td>
+                                <td><strong id="checkoutOrderTotal">Rp 0</strong></td>
+                            </tr>
+                        </tfoot>
+                    </table>
+                </div>
+                <div class="payment-section">
+                    <div class="form-group">
+                        <label for="paymentMethod">Pilih Pembayaran</label>
+                        <select id="paymentMethod" name="paymentMethod" required onchange="showPaymentDetails()">
+                            <option value="">-- Pilih Metode Pembayaran --</option>
+                            <option value="transfer">Transfer Bank</option>
+                            <option value="dana">DANA</option>
+                            <option value="gopay">GOPAY</option>
+                            <option value="ovo">OVO</option>
+                            <option value="cash">Bayar Di tempat</option>
+                        </select>
+                    </div>
+                    <div class="payment-details-box" id="paymentDetailsBox">
+                        <!-- Payment details will be populated by JavaScript -->
+                    </div>
+                </div>
+                <div class="checkout-btn-wrapper">
+                    <button type="submit" class="btn btn-primary">Konfirmasi Pesanan</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Holiday Modal -->
+    <div class="holiday-modal" id="holidayModal">
+        <div class="holiday-modal-content">
+            <div class="holiday-modal-icon">
+                <i class="fas fa-store-slash"></i>
+            </div>
+            <h3>Closed</h3>
+            <p>Maaf, Nerai Coffee saat ini tidak beroperasi. Terimakasih</p>
+            <button class="btn btn-primary" onclick="closeHolidayModal()">Close</button>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>

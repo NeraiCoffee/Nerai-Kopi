@@ -1,0 +1,975 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard - Nerai Coffee</title>
+    <link rel="stylesheet" href="styles.css">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Poppins', sans-serif;
+            background: #f5f5f5;
+            min-height: 100vh;
+        }
+
+        /* Dashboard Navbar */
+        .dashboard-navbar {
+            background: #6f4e37;
+            padding: 0.8rem 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        .navbar-left {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .navbar-logo {
+            width: 45px;
+            height: 45px;
+            border-radius: 50%;
+            object-fit: contain;
+            background: white;
+            padding: 3px;
+        }
+
+        .navbar-brand {
+            color: white;
+            font-size: 1.4rem;
+            font-weight: 600;
+        }
+
+        .navbar-right {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .admin-info {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            cursor: pointer;
+            padding: 6px 12px;
+            border-radius: 25px;
+            transition: background 0.3s ease;
+        }
+
+        .admin-info:hover {
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        .admin-name {
+            color: white;
+            font-size: 0.95rem;
+            font-weight: 500;
+        }
+
+        .admin-photo {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 2px solid white;
+        }
+
+        /* Dashboard Content */
+        .dashboard-container {
+            padding: 2rem;
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        .dashboard-header {
+            margin-bottom: 2rem;
+        }
+
+        .dashboard-header h1 {
+            color: #333;
+            font-size: 1.8rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .dashboard-header p {
+            color: #666;
+            font-size: 1rem;
+        }
+
+        /* Section Title */
+        .section-title {
+            font-size: 1.3rem;
+            color: #333;
+            margin-bottom: 1rem;
+            margin-top: 0;
+            font-weight: 600;
+            text-align: center;
+        }
+
+        .menu-popular-container .section-title {
+            margin-top: 0;
+        }
+
+        /* Stats Container */
+        .stats-container {
+            background: #ffebee;
+            padding: 1.5rem;
+            padding-left: calc(1.5rem + 10px);
+            padding-right: calc(1.5rem + 10px);
+            border-radius: 15px;
+            margin-bottom: 2rem;
+            border: 3px solid #6f4e37;
+            margin-left: 10px;
+            margin-right: 10px;
+        }
+
+        /* Stats Cards */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1rem;
+        }
+
+        .stat-card.revenue {
+            grid-row: span 3;
+        }
+
+        .stat-card {
+            padding: 1.2rem;
+            border-radius: 15px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            text-align: center;
+            gap: 0.5rem;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+            border: 2px solid transparent;
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+
+        .stat-card:hover {
+            border: 2px solid #6f4e37;
+            transform: scale(1.03) translateY(-5px);
+            box-shadow: 0 8px 20px rgba(111, 78, 55, 0.2);
+        }
+
+        .stat-card.orders {
+            background: #e8f4f8;
+        }
+
+        .stat-card.revenue {
+            background: #e8f5e9;
+        }
+
+        .stat-card.expense {
+            background: #fff3e0;
+        }
+
+        .stat-card.balance {
+            background: #fce4ec;
+        }
+
+        .stat-icon {
+            width: 50px;
+            height: 50px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.3rem;
+        }
+
+        .stat-card.orders .stat-icon {
+            background: #b3e5fc;
+            color: #0277bd;
+        }
+
+        .stat-card.revenue .stat-icon {
+            background: #c8e6c9;
+            color: #2e7d32;
+        }
+
+        .stat-card.expense .stat-icon {
+            background: #ffe0b2;
+            color: #ef6c00;
+        }
+
+        .stat-card.balance .stat-icon {
+            background: #f8bbd9;
+            color: #c2185b;
+        }
+
+        .menu-btn.logout-btn {
+            background: #ffebee;
+            border-color: #dc3545;
+        }
+
+        .menu-btn.logout-btn i,
+        .menu-btn.logout-btn span {
+            color: #dc3545;
+        }
+
+        .menu-btn.logout-btn:hover {
+            background: #dc3545;
+            border-color: #dc3545;
+        }
+
+        .menu-btn.logout-btn:hover i,
+        .menu-btn.logout-btn:hover span {
+            color: white;
+        }
+
+        /* Menu Accordion */
+
+        .stat-content h3 {
+            font-size: 1.4rem;
+            color: #333;
+            margin-bottom: 0.2rem;
+        }
+
+        .stat-content p {
+            color: #666;
+            font-size: 0.85rem;
+        }
+
+        /* Revenue Breakdown */
+        .revenue-breakdown {
+            margin-top: 0.8rem;
+            width: 100%;
+            text-align: left;
+        }
+
+        .breakdown-item {
+            display: flex;
+            justify-content: space-between;
+            font-size: 0.75rem;
+            padding: 4px 0;
+            color: #555;
+        }
+
+        .breakdown-label {
+            font-weight: 500;
+        }
+
+        .breakdown-value {
+            font-weight: 600;
+            color: #2e7d32;
+        }
+
+        .online-breakdown {
+            margin-top: 0.5rem;
+            padding-top: 0.5rem;
+            border-top: 1px dashed rgba(46, 125, 50, 0.3);
+        }
+
+        .breakdown-item-small {
+            display: flex;
+            justify-content: space-between;
+            font-size: 0.7rem;
+            padding: 2px 0;
+            color: #777;
+        }
+
+        .breakdown-label-small {
+            font-weight: 400;
+        }
+
+        .breakdown-value-small {
+            font-weight: 500;
+            color: #2e7d32;
+        }
+
+        /* Menu Popular Container */
+        .menu-popular-container {
+            background: #fff8e1;
+            padding: 1.5rem;
+            padding-left: calc(1.5rem + 10px);
+            padding-right: calc(1.5rem + 10px);
+            border-radius: 15px;
+            border: 3px solid #6f4e37;
+            margin-bottom: 2rem;
+            margin-left: 10px;
+            margin-right: 10px;
+            max-width: 100%;
+            box-sizing: border-box;
+        }
+
+        .menu-categories {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 1rem;
+            width: 100%;
+        }
+
+        .menu-category {
+            background: white;
+            border-radius: 12px;
+            padding: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.8rem;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+            border: 2px solid transparent;
+            transition: all 0.3s ease;
+            cursor: pointer;
+            overflow: hidden;
+            min-width: 0;
+        }
+
+        .menu-category:hover {
+            border: 2px solid #6f4e37;
+            transform: translateY(-3px);
+            box-shadow: 0 4px 12px rgba(111, 78, 55, 0.15);
+        }
+
+        .category-icon {
+            width: 50px;
+            height: 50px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.3rem;
+            flex-shrink: 0;
+        }
+
+        .menu-category.coffee .category-icon {
+            background: #e8f4f8;
+            color: #0277bd;
+        }
+
+        .menu-category.noncoffee .category-icon {
+            background: #e8f5e9;
+            color: #2e7d32;
+        }
+
+        .menu-category.snack .category-icon {
+            background: #fff3e0;
+            color: #ef6c00;
+        }
+
+        .menu-category.dessert .category-icon {
+            background: #fce4ec;
+            color: #c2185b;
+        }
+
+        /* Menu Category Group */
+        .menu-category-group {
+            background: white;
+            border-radius: 12px;
+            padding: 1rem;
+            border: 2px solid transparent;
+            transition: all 0.3s ease;
+            overflow: hidden;
+            min-width: 0;
+        }
+
+        .menu-category-group:hover {
+            border: 2px solid #6f4e37;
+            transform: translateY(-3px);
+            box-shadow: 0 4px 12px rgba(111, 78, 55, 0.15);
+        }
+
+        .menu-category-group .menu-category {
+            border: none;
+            padding: 0;
+            margin-bottom: 0.8rem;
+        }
+
+        .menu-category-group .menu-category:hover {
+            transform: none;
+            box-shadow: none;
+            border: none;
+        }
+
+        .category-items {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+
+        .category-item {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.5rem 0.7rem;
+            background: #fafafa;
+            border-radius: 8px;
+            font-size: 0.85rem;
+        }
+
+        .item-rank {
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            background: #6f4e37;
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.75rem;
+            font-weight: 600;
+            flex-shrink: 0;
+        }
+
+        .category-item .item-name {
+            flex: 1;
+            color: #333;
+            font-weight: 500;
+            overflow-wrap: break-word;
+            word-break: break-word;
+        }
+
+        .category-item .item-count {
+            color: #888;
+            font-size: 0.75rem;
+            flex-shrink: 0;
+        }
+
+        .category-content h3 {
+            font-size: 0.95rem;
+            color: #333;
+            margin-bottom: 0.2rem;
+        }
+
+        .best-item {
+            font-size: 0.85rem;
+            color: #6f4e37;
+            font-weight: 600;
+            margin-bottom: 0.1rem;
+            word-break: break-word;
+            overflow-wrap: break-word;
+        }
+
+        .item-count {
+            font-size: 0.75rem;
+            color: #666;
+            word-break: break-word;
+            overflow-wrap: break-word;
+        }
+
+        /* Menu Accordion */
+        .menu-accordion {
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+            margin-bottom: 2rem;
+            overflow: hidden;
+        }
+
+        .accordion-header {
+            background: #6f4e37;
+            padding: 1rem 1.5rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            cursor: pointer;
+            transition: background 0.3s ease;
+        }
+
+        .accordion-header:hover {
+            background: #5a3f2d;
+        }
+
+        .accordion-header h3 {
+            color: white;
+            font-size: 1.1rem;
+            margin: 0;
+        }
+
+        .accordion-header i {
+            color: white;
+            font-size: 1rem;
+            transition: transform 0.3s ease;
+        }
+
+        .accordion-header.active i {
+            transform: rotate(180deg);
+        }
+
+        .accordion-content {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.3s ease;
+            background: white;
+        }
+
+        .accordion-content.active {
+            max-height: 500px;
+        }
+
+        .menu-buttons {
+            padding: 1.5rem;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 1rem;
+            justify-content: center;
+        }
+
+        .menu-btn {
+            width: 100px;
+            height: 100px;
+            border-radius: 12px;
+            background: #f5f5f5;
+            border: 2px solid #6f4e37;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .menu-btn:hover {
+            background: #6f4e37;
+            transform: scale(1.05);
+            box-shadow: 0 4px 15px rgba(111, 78, 55, 0.3);
+            border-radius: 12px;
+        }
+
+        .menu-btn:hover i,
+        .menu-btn:hover span {
+            color: white;
+        }
+
+        .menu-btn i {
+            font-size: 1.8rem;
+            color: #6f4e37;
+            transition: color 0.3s ease;
+        }
+
+        .menu-btn span {
+            font-size: 0.75rem;
+            color: #333;
+            font-weight: 500;
+            transition: color 0.3s ease;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .dashboard-navbar {
+                padding: 0.8rem 1rem;
+            }
+
+            .navbar-brand {
+                font-size: 1.1rem;
+            }
+
+            .admin-name {
+                display: none;
+            }
+
+            .dashboard-container {
+                padding: 1rem;
+            }
+
+            .stats-container {
+                padding: 1rem;
+            }
+
+            .stats-grid {
+                grid-template-columns: repeat(2, 1fr);
+                gap: 0.8rem;
+            }
+
+            .stat-card {
+                padding: 1rem;
+            }
+
+            .stat-icon {
+                width: 45px;
+                height: 45px;
+                font-size: 1.1rem;
+            }
+
+            .stat-content h3 {
+                font-size: 1.2rem;
+            }
+
+            .stat-content p {
+                font-size: 0.75rem;
+            }
+
+            .dashboard-header h1 {
+                font-size: 1.5rem;
+            }
+
+            .dashboard-header p {
+                font-size: 0.9rem;
+            }
+
+            .menu-categories {
+                grid-template-columns: 1fr;
+            }
+
+            .menu-category-group {
+                margin-bottom: 0.5rem;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .stats-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Dashboard Navbar -->
+    <nav class="dashboard-navbar">
+        <div class="navbar-left">
+            <img id="navLogo" src="logo.png" alt="" class="navbar-logo">
+            <span id="navBrand" class="navbar-brand"></span>
+        </div>
+        <div class="navbar-right">
+            <div class="admin-info" onclick="showAdminMenu()">
+                <span id="navAdminName" class="admin-name"></span>
+                <img id="navAdminPhoto" src="" alt="" class="admin-photo">
+            </div>
+        </div>
+    </nav>
+
+    <!-- Dashboard Content -->
+    <div class="dashboard-container">
+        <div class="dashboard-header">
+            <h1>Dashboard</h1>
+            <p>Selamat datang di panel admin Nerai Coffee</p>
+        </div>
+
+        <!-- Menu Accordion -->
+        <div class="menu-accordion">
+            <div class="accordion-header" onclick="toggleAccordion()">
+                <h3>Menu</h3>
+                <i class="fas fa-chevron-down" id="accordionIcon"></i>
+            </div>
+            <div class="accordion-content" id="accordionContent">
+                <div class="menu-buttons">
+                    <button class="menu-btn" onclick="navigateTo('identitas')">
+                        <i class="fas fa-user"></i>
+                        <span>Identitas</span>
+                    </button>
+                    <button class="menu-btn" onclick="navigateTo('pengaturan')">
+                        <i class="fas fa-cog"></i>
+                        <span>Pengaturan</span>
+                    </button>
+                    <button class="menu-btn" onclick="navigateTo('product')">
+                        <i class="fas fa-coffee"></i>
+                        <span>Product</span>
+                    </button>
+                    <button class="menu-btn" onclick="navigateTo('pemasukan')">
+                        <i class="fas fa-arrow-down"></i>
+                        <span>Pemasukan</span>
+                    </button>
+                    <button class="menu-btn" onclick="navigateTo('pengeluaran')">
+                        <i class="fas fa-arrow-up"></i>
+                        <span>Pengeluaran</span>
+                    </button>
+                    <button class="menu-btn" onclick="navigateTo('laporan')">
+                        <i class="fas fa-file-alt"></i>
+                        <span>Laporan</span>
+                    </button>
+                    <button class="menu-btn" onclick="navigateTo('transaksi-berlangsung')">
+                        <i class="fas fa-spinner fa-spin"></i>
+                        <span>Transaksi Berlangsung</span>
+                    </button>
+                    <button class="menu-btn" onclick="navigateTo('backup-reset')">
+                        <i class="fas fa-database"></i>
+                        <span>Back Up & Reset</span>
+                    </button>
+                    <button class="menu-btn logout-btn" onclick="handleLogout()">
+                        <i class="fas fa-sign-out-alt"></i>
+                        <span>LogOut</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <h2 class="section-title">Neraca Keuangan</h2>
+    <!-- Stats Cards Container -->
+    <div class="stats-container">
+        <div class="stats-grid">
+            <div class="stat-card revenue">
+                <div class="stat-icon">
+                    <i class="fas fa-arrow-down"></i>
+                </div>
+                <div class="stat-content">
+                    <h3>Rp 5.2M</h3>
+                    <p>Total Pemasukan</p>
+                    <div class="revenue-breakdown">
+                        <div class="breakdown-item">
+                            <span class="breakdown-label">Onsite:</span>
+                            <span class="breakdown-value">Rp 2.5M</span>
+                        </div>
+                        <div class="breakdown-item">
+                            <span class="breakdown-label">Online:</span>
+                            <span class="breakdown-value">Rp 2.7M</span>
+                        </div>
+                        <div class="online-breakdown">
+                            <div class="breakdown-item-small">
+                                <span class="breakdown-label-small">Transfer Bank:</span>
+                                <span class="breakdown-value-small">Rp 1.0M</span>
+                            </div>
+                            <div class="breakdown-item-small">
+                                <span class="breakdown-label-small">DANA:</span>
+                                <span class="breakdown-value-small">Rp 600K</span>
+                            </div>
+                            <div class="breakdown-item-small">
+                                <span class="breakdown-label-small">GOPAY:</span>
+                                <span class="breakdown-value-small">Rp 600K</span>
+                            </div>
+                            <div class="breakdown-item-small">
+                                <span class="breakdown-label-small">OVO:</span>
+                                <span class="breakdown-value-small">Rp 500K</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="stat-card orders">
+                <div class="stat-icon">
+                    <i class="fas fa-shopping-bag"></i>
+                </div>
+                <div class="stat-content">
+                    <h3>150</h3>
+                    <p>Total Pesanan</p>
+                </div>
+            </div>
+            <div class="stat-card expense">
+                <div class="stat-icon">
+                    <i class="fas fa-arrow-up"></i>
+                </div>
+                <div class="stat-content">
+                    <h3>Rp 1.8M</h3>
+                    <p>Total Pengeluaran</p>
+                </div>
+            </div>
+            <div class="stat-card balance">
+                <div class="stat-icon">
+                    <i class="fas fa-wallet"></i>
+                </div>
+                <div class="stat-content">
+                    <h3>Rp 3.4M</h3>
+                    <p>Balance</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Menu Terlaris -->
+    <div class="menu-popular-container">
+        <h2 class="section-title">Menu Terlaris</h2>
+        <div class="menu-categories">
+            <!-- Coffee -->
+            <div class="menu-category-group coffee-group">
+                <div class="menu-category coffee">
+                    <div class="category-icon">
+                        <i class="fas fa-coffee"></i>
+                    </div>
+                    <div class="category-content">
+                        <h3>Coffee</h3>
+                    </div>
+                </div>
+                <div class="category-items">
+                    <div class="category-item">
+                        <span class="item-rank">1</span>
+                        <span class="item-name">Cappuccino</span>
+                        <span class="item-count">45 Terjual</span>
+                    </div>
+                    <div class="category-item">
+                        <span class="item-rank">2</span>
+                        <span class="item-name">Espresso</span>
+                        <span class="item-count">38 Terjual</span>
+                    </div>
+                    <div class="category-item">
+                        <span class="item-rank">3</span>
+                        <span class="item-name">Americano</span>
+                        <span class="item-count">30 Terjual</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Non Coffee -->
+            <div class="menu-category-group noncoffee-group">
+                <div class="menu-category noncoffee">
+                    <div class="category-icon">
+                        <i class="fas fa-mug-hot"></i>
+                    </div>
+                    <div class="category-content">
+                        <h3>Non Coffee</h3>
+                    </div>
+                </div>
+                <div class="category-items">
+                    <div class="category-item">
+                        <span class="item-rank">1</span>
+                        <span class="item-name">Green Tea Latte</span>
+                        <span class="item-count">32 Terjual</span>
+                    </div>
+                    <div class="category-item">
+                        <span class="item-rank">2</span>
+                        <span class="item-name">Chocolate Milk</span>
+                        <span class="item-count">27 Terjual</span>
+                    </div>
+                    <div class="category-item">
+                        <span class="item-rank">3</span>
+                        <span class="item-name">Taro Latte</span>
+                        <span class="item-count">22 Terjual</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Snack -->
+            <div class="menu-category-group snack-group">
+                <div class="menu-category snack">
+                    <div class="category-icon">
+                        <i class="fas fa-cookie-bite"></i>
+                    </div>
+                    <div class="category-content">
+                        <h3>Snack</h3>
+                    </div>
+                </div>
+                <div class="category-items">
+                    <div class="category-item">
+                        <span class="item-rank">1</span>
+                        <span class="item-name">French Fries</span>
+                        <span class="item-count">28 Terjual</span>
+                    </div>
+                    <div class="category-item">
+                        <span class="item-rank">2</span>
+                        <span class="item-name">Roti Bakar</span>
+                        <span class="item-count">20 Terjual</span>
+                    </div>
+                    <div class="category-item">
+                        <span class="item-rank">3</span>
+                        <span class="item-name">Dimsum</span>
+                        <span class="item-count">15 Terjual</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function toggleAccordion() {
+            const header = document.querySelector('.accordion-header');
+            const content = document.getElementById('accordionContent');
+            const icon = document.getElementById('accordionIcon');
+            
+            header.classList.toggle('active');
+            content.classList.toggle('active');
+        }
+
+        // Close accordion when clicking outside
+        document.addEventListener('click', function(event) {
+            const accordion = document.querySelector('.menu-accordion');
+            const header = document.querySelector('.accordion-header');
+            const content = document.getElementById('accordionContent');
+            
+            if (!accordion.contains(event.target) && content.classList.contains('active')) {
+                header.classList.remove('active');
+                content.classList.remove('active');
+            }
+        });
+
+        // Supabase Configuration
+        const supabaseUrl = 'https://fzrmhmedruvzyvyvgudw.supabase.co';
+        const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZ6cm1obWVkcnV2enl2eXZndWR3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzc3NDkzODUsImV4cCI6MjA5MzMyNTM4NX0.0HNIWfahho-IswD2xUDcsADo6GgtN7DgBJj-SlznXNE';
+        let supabaseClient;
+        try {
+            supabaseClient = window.supabase.createClient(supabaseUrl, supabaseKey);
+        } catch(e) {
+            console.error('Supabase init error:', e);
+        }
+
+        // Load navbar data from Supabase
+        async function loadNavbarData() {
+            if (!supabaseClient) return;
+            try {
+                const { data, error } = await supabaseClient
+                    .from('identitas')
+                    .select('*')
+                    .limit(1);
+                
+                if (error) {
+                    console.error('Load navbar error:', error);
+                    return;
+                }
+                
+                if (data && data.length > 0) {
+                    const row = data[0];
+                    if (row.logo_usaha) document.getElementById('navLogo').src = row.logo_usaha;
+                    if (row.nama_usaha) document.getElementById('navBrand').textContent = row.nama_usaha;
+                    if (row.owner) document.getElementById('navAdminName').textContent = row.owner;
+                    if (row.photo_owner) document.getElementById('navAdminPhoto').src = row.photo_owner;
+                }
+            } catch(e) {
+                console.error('Load navbar error:', e);
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', function() {
+            loadNavbarData();
+        });
+
+        function navigateTo(page) {
+            if (page === 'identitas') {
+                window.location.href = 'identitas.html';
+            } else if (page === 'pengaturan') {
+                window.location.href = 'pengaturan.html';
+            } else {
+                showNotification(`Navigasi ke ${page}`, 'info');
+            }
+        }
+
+        function handleLogout() {
+            showNotification('Logout berhasil!', 'success');
+            setTimeout(() => {
+                window.location.href = 'index.html';
+            }, 1500);
+        }
+
+        function showAdminMenu() {
+            // Demo function - can be expanded with dropdown menu
+            showNotification('Menu admin clicked', 'info');
+        }
+
+        // Notification function
+        function showNotification(message, type = 'info') {
+            const notification = document.createElement('div');
+            notification.style.cssText = `
+                position: fixed;
+                top: 20px;
+                right: 20px;
+                padding: 15px 20px;
+                border-radius: 8px;
+                color: white;
+                font-weight: 500;
+                z-index: 9999;
+                animation: slideIn 0.3s ease;
+                background: ${type === 'success' ? '#28a745' : type === 'error' ? '#dc3545' : '#6f4e37'};
+            `;
+            notification.textContent = message;
+            document.body.appendChild(notification);
+
+            setTimeout(() => {
+                notification.style.animation = 'slideOut 0.3s ease';
+                setTimeout(() => notification.remove(), 300);
+            }, 3000);
+        }
+    </script>
+</body>
+</html>
