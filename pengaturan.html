@@ -60,6 +60,31 @@
             gap: 12px;
         }
 
+        .btn-back-dashboard {
+            background: rgba(255, 255, 255, 0.2);
+            color: white;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            padding: 8px 16px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 0.9rem;
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            transition: all 0.3s ease;
+            text-decoration: none;
+        }
+
+        .btn-back-dashboard:hover {
+            background: rgba(255, 255, 255, 0.3);
+            transform: translateY(-2px);
+        }
+
+        .btn-back-dashboard i {
+            font-size: 0.9rem;
+        }
+
         .admin-info {
             display: flex;
             align-items: center;
@@ -658,6 +683,10 @@
             <span id="navBrand" class="navbar-brand"></span>
         </div>
         <div class="navbar-right">
+            <a href="dashboard.html" class="btn-back-dashboard">
+                <i class="fas fa-arrow-left"></i>
+                Kembali ke Dashboard
+            </a>
             <div class="admin-info" onclick="showAdminMenu()">
                 <span id="navAdminName" class="admin-name"></span>
                 <img id="navAdminPhoto" src="" alt="" class="admin-photo">
