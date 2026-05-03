@@ -1,4 +1,4 @@
-// Menu data
+// Data menu
 const menuItems = [
     {
         id: 1,
@@ -114,29 +114,29 @@ const menuItems = [
     }
 ];
 
-// Cart state
+// Keranjang
 let cart = [];
 let currentCategory = 'all';
 
-// Initialize app
+// Inisialisasi aplikasi
 document.addEventListener('DOMContentLoaded', function() {
     renderMenu();
     updateCartUI();
     
-    // Set minimum datetime for order time
+    // Set waktu minimum pesanan
     const now = new Date();
-    now.setMinutes(now.getMinutes() + 30); // Minimum 30 minutes from now
+    now.setMinutes(now.getMinutes() + 30); // Minimal 30 menit
     document.getElementById('orderTime').min = now.toISOString().slice(0, 16);
     
-    // Initialize features section with first background image and text
+    // Inisialisasi fitur dengan gambar dan teks pertama
     updateFeatureText();
 });
 
-// Current selected menu item for modal
+// Menu terpilih untuk modal
 let currentMenuItem = null;
 let modalQuantity = 1;
 
-// Render menu items
+// Render menu
 function renderMenu(category = 'all') {
     const menuGrid = document.getElementById('menuGrid');
     const filteredItems = category === 'all' 
@@ -154,11 +154,11 @@ function renderMenu(category = 'all') {
     `).join('');
 }
 
-// Filter menu by category
+// Filter menu
 function filterMenu(category) {
     currentCategory = category;
     
-    // Update active button
+    // Update tombol aktif
     document.querySelectorAll('.category-btn').forEach(btn => {
         btn.classList.remove('active');
     });
@@ -167,7 +167,7 @@ function filterMenu(category) {
     renderMenu(category);
 }
 
-// Add item to cart
+// Tambah ke keranjang
 async function addToCart(itemId) {
     const closed = await isTodayClosed();
     if (closed) {
@@ -193,13 +193,13 @@ async function addToCart(itemId) {
     showNotification(`${item.name} ditambahkan ke keranjang`, 'success');
 }
 
-// Remove item from cart
+// Hapus dari keranjang
 function removeFromCart(itemId) {
     cart = cart.filter(item => item.id !== itemId);
     updateCartUI();
 }
 
-// Update item quantity
+// Update jumlah
 function updateQuantity(itemId, change) {
     const item = cart.find(i => i.id === itemId);
     if (item) {
@@ -212,17 +212,17 @@ function updateQuantity(itemId, change) {
     }
 }
 
-// Update cart UI
+// Update UI keranjang
 function updateCartUI() {
     const cartCount = document.getElementById('cartCount');
     const cartItems = document.getElementById('cartItems');
     const cartTotal = document.getElementById('cartTotal');
     
-    // Update cart count
+    // Update jumlah keranjang
     const totalItems = cart.reduce((sum, item) => sum + item.quantity, 0);
     cartCount.textContent = totalItems;
     
-    // Update cart items
+    // Update item keranjang
     if (cart.length === 0) {
         cartItems.innerHTML = '<p class="empty-cart">Keranjang masih kosong</p>';
     } else {
@@ -241,12 +241,12 @@ function updateCartUI() {
         `).join('');
     }
     
-    // Update cart total
+    // Update total keranjang
     const total = cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
     cartTotal.textContent = `Rp ${total.toLocaleString('id-ID')}`;
 }
 
-// Toggle cart sidebar
+// Toggle sidebar keranjang
 function toggleCart() {
     const cartSidebar = document.getElementById('cartSidebar');
     cartSidebar.classList.toggle('active');
@@ -259,11 +259,11 @@ function checkout() {
         return;
     }
     
-    // Generate transaction ID
+    // Generate ID transaksi
     const transactionId = 'TRX-' + Date.now();
     document.getElementById('transactionIdCheckout').value = transactionId;
     
-    // Populate order summary table
+    // Isi tabel ringkasan pesanan
     const tableBody = document.getElementById('checkoutOrderTableBody');
     const orderTotal = document.getElementById('checkoutOrderTotal');
     
@@ -286,7 +286,7 @@ function checkout() {
     tableBody.innerHTML = tableHTML;
     orderTotal.textContent = `Rp ${total.toLocaleString('id-ID')}`;
     
-    // Close cart sidebar and show checkout modal
+    // Tutup keranjang dan tampilkan modal checkout
     const cartSidebar = document.getElementById('cartSidebar');
     cartSidebar.classList.remove('active');
     
@@ -307,7 +307,7 @@ function processCheckout(event) {
     const customerAddress = document.getElementById('customerAddress').value;
     const customerPhone = document.getElementById('customerPhone').value;
     
-    // Here you would normally send the data to your backend
+    // Kirim data ke backend
     console.log('Processing order:', {
         transactionId,
         customerName,
@@ -319,7 +319,7 @@ function processCheckout(event) {
     
     showNotification(`Pesanan berhasil! ID: ${transactionId}`, 'success');
     
-    // Clear cart and close modal
+    // Kosongkan keranjang dan tutup modal
     cart = [];
     updateCartUI();
     closeCheckoutModal();
@@ -330,7 +330,7 @@ function processCheckout(event) {
     document.getElementById('customerPhone').value = '';
 }
 
-// Close checkout modal when clicking outside
+// Tutup modal checkout saat klik di luar
 const checkoutModalElement = document.getElementById('checkoutModal');
 if (checkoutModalElement) {
     checkoutModalElement.addEventListener('click', function(e) {
@@ -354,13 +354,13 @@ document.getElementById('orderForm')?.addEventListener('submit', function(e) {
         total: cart.reduce((sum, item) => sum + (item.price * item.quantity), 0)
     };
     
-    // Here you would normally send this data to your server
+    // Kirim data ke server
     console.log('Order data:', formData);
     
-    // Show success message
+    // Tampilkan pesan sukses
     showNotification('Pesanan berhasil dikirim! Kami akan menghubungi Anda segera.', 'success');
     
-    // Clear cart and close modal
+    // Kosongkan keranjang dan tutup modal
     cart = [];
     updateCartUI();
     closeOrderModal();
@@ -369,7 +369,7 @@ document.getElementById('orderForm')?.addEventListener('submit', function(e) {
     this.reset();
 });
 
-// Close order modal
+// Tutup modal pesanan
 function closeOrderModal() {
     document.getElementById('orderModal')?.classList.remove('active');
 }
@@ -388,13 +388,13 @@ document.getElementById('orderForm').addEventListener('submit', function(e) {
         total: cart.reduce((sum, item) => sum + (item.price * item.quantity), 0)
     };
     
-    // Here you would normally send this data to your server
+    // Kirim data ke server
     console.log('Order data:', formData);
     
-    // Show success message
+    // Tampilkan pesan sukses
     showNotification('Pesanan berhasil dikirim! Kami akan menghubungi Anda segera.', 'success');
     
-    // Clear cart and close modal
+    // Kosongkan keranjang dan tutup modal
     cart = [];
     updateCartUI();
     closeOrderModal();
@@ -403,9 +403,9 @@ document.getElementById('orderForm').addEventListener('submit', function(e) {
     this.reset();
 });
 
-// Show notification
+// Tampilkan notifikasi
 function showNotification(message, type = 'info') {
-    // Create notification element
+    // Buat elemen notifikasi
     const notification = document.createElement('div');
     notification.className = `notification ${type}`;
     notification.textContent = message;
@@ -421,7 +421,7 @@ function showNotification(message, type = 'info') {
         animation: slideIn 0.3s ease;
     `;
     
-    // Add animation
+    // Tambah animasi
     const style = document.createElement('style');
     style.textContent = `
         @keyframes slideIn {
@@ -439,7 +439,7 @@ function showNotification(message, type = 'info') {
     
     document.body.appendChild(notification);
     
-    // Remove after 3 seconds
+    // Hapus setelah 3 detik
     setTimeout(() => {
         notification.style.animation = 'slideIn 0.3s ease reverse';
         setTimeout(() => {
@@ -448,19 +448,19 @@ function showNotification(message, type = 'info') {
     }, 3000);
 }
 
-// Scroll to menu
+// Scroll ke menu
 function scrollToMenu() {
     document.getElementById('menu').scrollIntoView({ behavior: 'smooth' });
 }
 
-// Show order modal directly
+// Tampilkan modal pesanan langsung
 function showOrderModal() {
     if (cart.length === 0) {
         showNotification('Silakan pilih menu terlebih dahulu dengan mengklik item menu', 'error');
         return;
     }
     
-    // Update order summary
+    // Update ringkasan pesanan
     const orderSummary = document.getElementById('orderSummary');
     const total = cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
     
@@ -483,7 +483,7 @@ function showOrderModal() {
     document.getElementById('orderModal').classList.add('active');
 }
 
-// Show menu modal
+// Tampilkan modal menu
 function showMenuModal(itemId) {
     const item = menuItems.find(i => i.id === itemId);
     if (!item) return;
@@ -491,7 +491,7 @@ function showMenuModal(itemId) {
     currentMenuItem = item;
     modalQuantity = 1;
     
-    // Update modal content
+    // Update konten modal
     document.getElementById('menuModalTitle').textContent = 'Detail Menu';
     document.getElementById('menuModalImage').src = item.image;
     document.getElementById('menuModalImage').alt = item.name;
@@ -511,13 +511,13 @@ function closeMenuModal() {
     modalQuantity = 1;
 }
 
-// Increase modal quantity
+// Tambah jumlah modal
 function increaseModalQuantity() {
     modalQuantity++;
     document.getElementById('modalQuantity').textContent = modalQuantity;
 }
 
-// Decrease modal quantity
+// Kurang jumlah modal
 function decreaseModalQuantity() {
     if (modalQuantity > 1) {
         modalQuantity--;
@@ -525,7 +525,7 @@ function decreaseModalQuantity() {
     }
 }
 
-// Add to cart from modal
+// Tambah ke keranjang dari modal
 async function addToCartFromModal() {
     if (!currentMenuItem) return;
     
@@ -543,12 +543,12 @@ async function addToCartFromModal() {
     showNotification(`${currentMenuItem.name} x${modalQuantity} ditambahkan ke keranjang`, 'success');
 }
 
-// Show info
+// Tampilkan info
 function showInfo() {
     showNotification('Nerai Coffee - Kopi premium untuk hari Anda. Pesan online dan nikmati kesegaran kopi terbaik!', 'info');
 }
 
-// Footer links
+// Link footer
 function showPrivacyPolicy() {
     showNotification('Kebijakan Privasi: Data pribadi Anda kami lindungi dan tidak akan dibagikan kepada pihak ketiga tanpa persetujuan Anda.', 'info');
 }
@@ -561,7 +561,7 @@ function showDeveloper() {
     showNotification('Developed with ❤️ for Nerai Coffee', 'info');
 }
 
-// Login modal functions
+// Fungsi modal login
 function showLogin() {
     const modal = document.getElementById('loginModal');
     modal.classList.add('active');
@@ -581,7 +581,7 @@ function handleLogin(event) {
     validateLogin(username, password);
 }
 
-// Supabase Configuration
+// Konfigurasi Supabase
 const supabaseUrl = 'https://fzrmhmedruvzyvyvgudw.supabase.co';
 const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZ6cm1obWVkcnV2enl2eXZndWR3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzc3NDkzODUsImV4cCI6MjA5MzMyNTM4NX0.0HNIWfahho-IswD2xUDcsADo6GgtN7DgBJj-SlznXNE';
 let supabaseClient;
@@ -591,7 +591,7 @@ try {
     console.error('Supabase init error:', e);
 }
 
-// Load navbar data from Supabase
+// Load data navbar dari Supabase
 async function loadNavbarData() {
     if (!supabaseClient) return;
     try {
@@ -640,13 +640,13 @@ async function loadNavbarData() {
                 if (pageTitle) pageTitle.textContent = namaUsaha + ' - Pesan Online & Take Away';
             }
 
-            // Brand name spans di about text
+            // Span brand di teks about
             const brandNames = document.querySelectorAll('.brand-name');
             brandNames.forEach(el => el.textContent = namaUsaha);
             const brandShorts = document.querySelectorAll('.brand-short');
             brandShorts.forEach(el => el.textContent = shortName);
 
-            // Owner photo & name
+            // Foto dan nama owner
             if (ownerUrl) {
                 const ownerPhoto = document.getElementById('ownerPhoto');
                 if (ownerPhoto) ownerPhoto.src = ownerUrl;
@@ -666,7 +666,7 @@ async function loadNavbarData() {
                 phoneEls.forEach(el => {
                     if (el.querySelector('.fa-phone')) el.innerHTML = `<i class="fas fa-phone"></i> ${tlp}`;
                 });
-                // Update WhatsApp link
+                // Update link WhatsApp
                 const waLink = document.getElementById('waLink');
                 if (waLink) {
                     const cleanPhone = tlp.replace(/[^0-9]/g, '');
@@ -694,7 +694,12 @@ document.addEventListener('DOMContentLoaded', function() {
     loadPaymentAccountsForCheckout();
 });
 
-// Load current location from Supabase
+// Matikan klik kanan
+document.addEventListener('contextmenu', function(e) {
+    e.preventDefault();
+});
+
+// Load lokasi saat ini dari Supabase
 async function loadCurrentLocation() {
     if (!supabaseClient) return;
     try {
@@ -714,13 +719,13 @@ async function loadCurrentLocation() {
             console.log('Location data from Supabase:', location);
             document.getElementById('locationName').textContent = location.nama_lokasi;
             
-            // Ensure container is visible and has dimensions
+            // Pastikan container terlihat
             const mapContainer = document.getElementById('locationMap');
             if (mapContainer) {
                 console.log('Map container height:', mapContainer.offsetHeight);
             }
             
-            // Delay to ensure container is visible
+            // Delay untuk pastikan container terlihat
             setTimeout(() => {
                 initLocationMap(location.koordinat);
             }, 1000);
@@ -733,7 +738,7 @@ async function loadCurrentLocation() {
     }
 }
 
-// Initialize location map
+// Inisialisasi map lokasi
 let locationMap;
 let locationMarker;
 
@@ -762,25 +767,25 @@ function initLocationMap(koordinat) {
         return;
     }
 
-    // Remove existing map if exists
+    // Hapus map jika ada
     if (locationMap) {
         locationMap.remove();
         locationMap = null;
     }
 
-    // Create new map
+    // Buat map baru
     locationMap = L.map('locationMap').setView([lat, lng], 17);
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
         attribution: '© OpenStreetMap contributors',
         maxZoom: 19
     }).addTo(locationMap);
 
-    // Add marker first
+    // Tambah marker
     locationMarker = L.marker([lat, lng]).addTo(locationMap)
         .bindPopup(document.getElementById('locationName').textContent)
         .openPopup();
 
-    // Invalidate size after marker is added
+    // Invalidate size setelah marker ditambah
     setTimeout(() => {
         if (locationMap) {
             locationMap.invalidateSize();
@@ -791,12 +796,12 @@ function initLocationMap(koordinat) {
     console.log('Map initialized successfully');
 }
 
-// Check holiday status for today
+// Cek status libur hari ini
 async function checkHolidayStatus() {
     if (!supabaseClient) return;
     try {
         const today = new Date();
-        const dateStr = today.toISOString().split('T')[0]; // YYYY-MM-DD format
+        const dateStr = today.toISOString().split('T')[0]; // Format YYYY-MM-DD
         
         const { data, error } = await supabaseClient
             .from('libur')
@@ -820,7 +825,7 @@ async function checkHolidayStatus() {
     }
 }
 
-// Close holiday modal
+// Tutup modal libur
 function closeHolidayModal() {
     const modal = document.getElementById('holidayModal');
     if (modal) {
@@ -828,7 +833,7 @@ function closeHolidayModal() {
     }
 }
 
-// Check if today is closed
+// Cek apakah hari ini tutup
 async function isTodayClosed() {
     if (!supabaseClient) return false;
     try {
@@ -853,7 +858,7 @@ async function isTodayClosed() {
     }
 }
 
-// Show holiday modal
+// Tampilkan modal libur
 function showHolidayModal() {
     const modal = document.getElementById('holidayModal');
     if (modal) {
@@ -897,7 +902,7 @@ async function validateLogin(username, password) {
     }
 }
 
-// Close login modal when clicking outside
+// Tutup modal login saat klik di luar
 const loginModal = document.getElementById('loginModal');
 if (loginModal) {
     loginModal.addEventListener('click', function(e) {
@@ -907,7 +912,7 @@ if (loginModal) {
     });
 }
 
-// Orders modal functions
+// Fungsi modal pesanan
 function showOrders() {
     const modal = document.getElementById('ordersModal');
     modal.classList.add('active');
@@ -918,10 +923,10 @@ function closeOrdersModal() {
     modal.classList.remove('active');
 }
 
-// Payment accounts data from Supabase
+// Data akun pembayaran dari Supabase
 let paymentAccounts = [];
 
-// Load payment accounts from Supabase for checkout
+// Load akun pembayaran dari Supabase untuk checkout
 async function loadPaymentAccountsForCheckout() {
     if (!supabaseClient) return;
     try {
@@ -944,12 +949,12 @@ async function loadPaymentAccountsForCheckout() {
     }
 }
 
-// Populate payment dropdown
+// Isi dropdown pembayaran
 function populatePaymentDropdown(accounts) {
     const select = document.getElementById('paymentMethod');
     if (!select) return;
     
-    // Keep the first option and cash option, remove others
+    // Pertahankan opsi pertama dan cash, hapus lainnya
     select.innerHTML = `
         <option value="">-- Pilih Metode Pembayaran --</option>
         <option value="cash">Bayar Di tempat</option>
@@ -965,7 +970,7 @@ function populatePaymentDropdown(accounts) {
     });
 }
 
-// Show payment details based on selected method
+// Tampilkan detail pembayaran
 function showPaymentDetails() {
     const select = document.getElementById('paymentMethod');
     const paymentMethod = select.value;
@@ -973,12 +978,12 @@ function showPaymentDetails() {
     const selectedOption = select.options[select.selectedIndex];
     
     if (paymentMethod === 'cash') {
-        // Bayar Di tempat - show notification instead of payment details
+        // Bayar Di tempat - tampilkan notifikasi
         showNotification('Anda memilih jenis pembayaran dengan metode Bayar Ditempat. pesanan anda akan di proses saat anda sampai di lokasi. Terimakasih', 'info');
         detailsBox.innerHTML = '';
         detailsBox.classList.remove('active');
     } else if (paymentMethod && selectedOption && selectedOption.dataset.norek) {
-        // Show details from Supabase
+        // Tampilkan detail dari Supabase
         const namaAkun = selectedOption.textContent;
         const norek = selectedOption.dataset.norek;
         const pemilik = selectedOption.dataset.pemilik;
@@ -999,9 +1004,9 @@ function showPaymentDetails() {
     }
 }
 
-// Upload payment proof
+// Upload bukti pembayaran
 function uploadPaymentProof() {
-    // Create hidden file input
+    // Buat input file tersembunyi
     const fileInput = document.createElement('input');
     fileInput.type = 'file';
     fileInput.accept = 'image/*';
@@ -1012,10 +1017,10 @@ function uploadPaymentProof() {
         if (file) {
             const reader = new FileReader();
             reader.onload = function(event) {
-                // Display preview
+                // Tampilkan preview
                 const previewContainer = document.getElementById('paymentProofPreview');
                 if (!previewContainer) {
-                    // Create preview container if not exists
+                    // Buat container preview jika belum ada
                     const detailsBox = document.getElementById('paymentDetailsBox');
                     const previewDiv = document.createElement('div');
                     previewDiv.id = 'paymentProofPreview';
@@ -1027,7 +1032,7 @@ function uploadPaymentProof() {
                     `;
                     detailsBox.appendChild(previewDiv);
                 } else {
-                    // Update existing preview
+                    // Update preview yang ada
                     previewContainer.innerHTML = `
                         <p class="preview-label">Preview Bukti Pembayaran:</p>
                         <img src="${event.target.result}" alt="Bukti Pembayaran">
@@ -1047,7 +1052,7 @@ function checkOrder(event) {
     event.preventDefault();
     const transactionId = document.getElementById('transactionId').value;
     
-    // Demo check - replace with actual API call
+    // Cek demo - ganti dengan panggilan API
     if (transactionId && transactionId.length > 0) {
         showNotification(`Mencari pesanan dengan ID: ${transactionId}... (Demo)`, 'info');
         closeOrdersModal();
@@ -1056,7 +1061,7 @@ function checkOrder(event) {
     }
 }
 
-// Close orders modal when clicking outside
+// Tutup modal pesanan saat klik di luar
 const ordersModal = document.getElementById('ordersModal');
 if (ordersModal) {
     ordersModal.addEventListener('click', function(e) {
@@ -1066,7 +1071,7 @@ if (ordersModal) {
     });
 }
 
-// Toggle password visibility
+// Toggle visibilitas password
 function togglePasswordVisibility() {
     const passwordInput = document.getElementById('adminPassword');
     const toggleIcon = document.getElementById('passwordToggleIcon');
@@ -1082,12 +1087,12 @@ function togglePasswordVisibility() {
     }
 }
 
-// Close cart when clicking outside
+// Tutup keranjang saat klik di luar
 document.addEventListener('click', function(e) {
     const cartSidebar = document.getElementById('cartSidebar');
     const cartBtn = document.querySelector('.cart-btn');
     
-    // Check if click is on quantity buttons or their children
+    // Cek klik pada tombol jumlah
     const isQuantityBtn = e.target.closest('.quantity-btn');
     
     if (!cartSidebar.contains(e.target) && !cartBtn.contains(e.target) && !isQuantityBtn) {
@@ -1095,24 +1100,24 @@ document.addEventListener('click', function(e) {
     }
 });
 
-// Close modal when clicking outside
+// Tutup modal saat klik di luar
 document.getElementById('orderModal').addEventListener('click', function(e) {
     if (e.target === this) {
         closeOrderModal();
     }
 });
 
-// Close menu modal when clicking outside
+// Tutup modal menu saat klik di luar
 document.getElementById('menuModal').addEventListener('click', function(e) {
     if (e.target === this) {
         closeMenuModal();
     }
 });
 
-// Features Section functionality
+// Fungsionalitas Fitur
 let currentSlide = 0;
 const totalSlides = 3;
-const slideInterval = 5000; // 5 seconds
+const slideInterval = 5000; // 5 detik
 const backgroundImages = [
     'pesan online.jpg',
     'cepat praktis.jpg',
@@ -1141,10 +1146,10 @@ function updateFeatureText() {
     const featuresSection = document.querySelector('.features');
     const featureText = document.getElementById('featureText');
     
-    // Update features section background image
+    // Update gambar latar fitur
     featuresSection.style.backgroundImage = `url('${backgroundImages[currentSlide]}')`;
     
-    // Update text content with fade effect
+    // Update teks dengan efek fade
     if (featureText) {
         featureText.style.opacity = '0';
         setTimeout(() => {
@@ -1168,10 +1173,10 @@ function goToSlide(index) {
     updateFeatureText();
 }
 
-// Auto-slide every 5 seconds
+// Auto-slide setiap 5 detik
 let autoSlide = setInterval(nextSlide, slideInterval);
 
-// Pause auto-slide on hover over features section
+// Pause auto-slide saat hover fitur
 const featuresSection = document.querySelector('.features');
 if (featuresSection) {
     featuresSection.addEventListener('mouseenter', () => {
