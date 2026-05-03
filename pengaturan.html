@@ -61,28 +61,31 @@
         }
 
         .btn-back-dashboard {
-            background: rgba(255, 255, 255, 0.2);
+            background: #6f4e37;
             color: white;
-            border: 1px solid rgba(255, 255, 255, 0.3);
-            padding: 8px 16px;
+            border: 1px solid #6f4e37;
+            padding: 12px 24px;
             border-radius: 8px;
             cursor: pointer;
-            font-size: 0.9rem;
+            font-size: 0.95rem;
             font-weight: 500;
-            display: flex;
+            display: inline-flex;
             align-items: center;
             gap: 8px;
             transition: all 0.3s ease;
             text-decoration: none;
+            box-shadow: 0 2px 8px rgba(111, 78, 55, 0.2);
         }
 
         .btn-back-dashboard:hover {
-            background: rgba(255, 255, 255, 0.3);
+            background: #5a3d2d;
+            border-color: #5a3d2d;
             transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(111, 78, 55, 0.3);
         }
 
         .btn-back-dashboard i {
-            font-size: 0.9rem;
+            font-size: 0.95rem;
         }
 
         .admin-info {
@@ -683,10 +686,6 @@
             <span id="navBrand" class="navbar-brand"></span>
         </div>
         <div class="navbar-right">
-            <a href="dashboard.html" class="btn-back-dashboard">
-                <i class="fas fa-arrow-left"></i>
-                Kembali ke Dashboard
-            </a>
             <div class="admin-info" onclick="showAdminMenu()">
                 <span id="navAdminName" class="admin-name"></span>
                 <img id="navAdminPhoto" src="" alt="" class="admin-photo">
@@ -831,6 +830,14 @@
                     </div>
                 </div>
             </div>
+        </div>
+
+        <!-- Back to Dashboard Button -->
+        <div style="text-align: center; margin-top: 2rem;">
+            <a href="dashboard.html" class="btn-back-dashboard">
+                <i class="fas fa-arrow-left"></i>
+                Kembali ke Dashboard
+            </a>
         </div>
     </div>
 
