@@ -1,0 +1,1192 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Produk - Nerai Coffee</title>
+    <link rel="stylesheet" href="styles.css">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Poppins', sans-serif;
+            background: #f5f5f5;
+            min-height: 100vh;
+        }
+
+        /* Dashboard Navbar */
+        .dashboard-navbar {
+            background: #6f4e37;
+            padding: 0.8rem 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        .navbar-left {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .navbar-logo {
+            width: 45px;
+            height: 45px;
+            border-radius: 50%;
+            object-fit: contain;
+            background: white;
+            padding: 3px;
+        }
+
+        .navbar-brand {
+            color: white;
+            font-size: 1.4rem;
+            font-weight: 600;
+        }
+
+        .navbar-right {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .admin-info {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            cursor: pointer;
+            padding: 6px 12px;
+            border-radius: 25px;
+            transition: background 0.3s ease;
+        }
+
+        .admin-info:hover {
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        .admin-name {
+            color: white;
+            font-size: 0.9rem;
+            font-weight: 500;
+        }
+
+        .admin-photo {
+            width: 35px;
+            height: 35px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 2px solid white;
+        }
+
+        /* Main Container */
+        .main-container {
+            padding: 2rem;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .page-title {
+            font-size: 1.8rem;
+            color: #333;
+            margin-bottom: 1.5rem;
+            text-align: center;
+            font-weight: 600;
+        }
+
+        /* Product Container */
+        .product-container {
+            background: white;
+            border-radius: 16px;
+            padding: 1.5rem;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+        }
+
+        /* Tabs */
+        .tabs {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+            border-bottom: 2px solid #e0e0e0;
+            padding-bottom: 0.5rem;
+        }
+
+        .tab-btn {
+            padding: 12px 24px;
+            border: none;
+            background: none;
+            font-size: 1rem;
+            font-weight: 500;
+            color: #666;
+            cursor: pointer;
+            border-radius: 8px 8px 0 0;
+            transition: all 0.3s ease;
+            position: relative;
+        }
+
+        .tab-btn:hover {
+            color: #6f4e37;
+            background: rgba(111, 78, 55, 0.05);
+        }
+
+        .tab-btn.active {
+            color: #6f4e37;
+            background: rgba(111, 78, 55, 0.1);
+        }
+
+        .tab-btn.active::after {
+            content: '';
+            position: absolute;
+            bottom: -0.5rem;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background: #6f4e37;
+            border-radius: 3px 3px 0 0;
+        }
+
+        /* Tab Content */
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        /* Product Grid */
+        .product-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 1.5rem;
+        }
+
+        .product-card {
+            background: #f9f9f9;
+            border-radius: 12px;
+            overflow: hidden;
+            border: 2px solid transparent;
+            transition: all 0.3s ease;
+        }
+
+        .product-card:hover {
+            border-color: #6f4e37;
+            transform: translateY(-3px);
+            box-shadow: 0 4px 12px rgba(111, 78, 55, 0.15);
+        }
+
+        .product-image {
+            width: 100%;
+            height: 180px;
+            object-fit: cover;
+            background: #e0e0e0;
+        }
+
+        .product-info {
+            padding: 1rem;
+        }
+
+        .product-name {
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 0.5rem;
+        }
+
+        .product-price {
+            font-size: 1rem;
+            color: #6f4e37;
+            font-weight: 700;
+        }
+
+        .product-actions {
+            display: flex;
+            gap: 0.5rem;
+            margin-top: 1rem;
+        }
+
+        .btn-action {
+            flex: 1;
+            padding: 8px 12px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 0.85rem;
+            font-weight: 500;
+            transition: all 0.3s ease;
+        }
+
+        .btn-edit {
+            background: #e8f5e9;
+            color: #2e7d32;
+        }
+
+        .btn-edit:hover {
+            background: #2e7d32;
+            color: white;
+        }
+
+        .btn-delete {
+            background: #ffebee;
+            color: #dc3545;
+        }
+
+        .btn-delete:hover {
+            background: #dc3545;
+            color: white;
+        }
+
+        /* Add Product Button */
+        .add-product-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            background: #6f4e37;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 0.95rem;
+            font-weight: 500;
+            transition: all 0.3s ease;
+            margin-bottom: 1rem;
+        }
+
+        .add-product-btn:hover {
+            background: #5a3d2d;
+            transform: translateY(-2px);
+        }
+
+        /* Empty State */
+        .empty-state {
+            text-align: center;
+            padding: 3rem;
+            color: #999;
+        }
+
+        .empty-state i {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+            color: #ccc;
+        }
+
+        /* Product Modal */
+        .product-modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.5);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+
+        .product-modal.active {
+            display: flex;
+        }
+
+        .product-modal-content {
+            background: white;
+            border-radius: 16px;
+            padding: 1.5rem;
+            width: 90%;
+            max-width: 500px;
+            max-height: 90vh;
+            overflow-y: auto;
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+        }
+
+        .modal-header h3 {
+            color: #333;
+            font-size: 1.3rem;
+            margin: 0;
+        }
+
+        .modal-close {
+            background: none;
+            border: none;
+            font-size: 1.5rem;
+            cursor: pointer;
+            color: #666;
+            transition: color 0.3s ease;
+        }
+
+        .modal-close:hover {
+            color: #333;
+        }
+
+        .form-group {
+            margin-bottom: 1rem;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 0.5rem;
+            color: #333;
+            font-weight: 500;
+            font-size: 0.9rem;
+        }
+
+        .form-input-wrapper {
+            display: flex;
+            gap: 0.5rem;
+            align-items: center;
+        }
+
+        .form-input {
+            width: 100%;
+            padding: 10px 12px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            font-size: 0.95rem;
+            font-family: 'Poppins', sans-serif;
+            transition: border-color 0.3s ease;
+        }
+
+        .btn-calc-hpp {
+            width: 44px;
+            height: 44px;
+            border: 2px solid #6f4e37;
+            background: white;
+            color: #6f4e37;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 1.2rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s ease;
+            position: relative;
+        }
+
+        .btn-calc-hpp:hover {
+            background: #6f4e37;
+            color: white;
+        }
+
+        .btn-calc-hpp::after {
+            content: 'Hitung HPP';
+            position: absolute;
+            right: 120%;
+            top: 50%;
+            transform: translateY(-50%);
+            background: #333;
+            color: white;
+            padding: 6px 12px;
+            border-radius: 6px;
+            font-size: 0.8rem;
+            white-space: nowrap;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.3s ease;
+        }
+
+        .btn-calc-hpp:hover::after {
+            opacity: 1;
+        }
+
+        .form-input:focus {
+            outline: none;
+            border-color: #6f4e37;
+        }
+
+        textarea.form-input {
+            resize: vertical;
+            min-height: 80px;
+        }
+
+        .photo-preview {
+            margin-top: 0.5rem;
+            display: none;
+            text-align: center;
+        }
+
+        .photo-preview.active {
+            display: block;
+        }
+
+        .photo-preview img {
+            max-width: 100%;
+            max-height: 200px;
+            border-radius: 8px;
+            border: 2px solid #e0e0e0;
+        }
+
+        .photo-preview .remove-photo {
+            display: block;
+            margin: 0.5rem auto 0;
+            padding: 6px 12px;
+            background: #ffebee;
+            color: #dc3545;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 0.85rem;
+            font-weight: 500;
+        }
+
+        .photo-preview .remove-photo:hover {
+            background: #dc3545;
+            color: white;
+        }
+
+        .modal-footer {
+            display: flex;
+            gap: 1rem;
+            margin-top: 1.5rem;
+        }
+
+        .btn-modal {
+            flex: 1;
+            padding: 12px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 0.95rem;
+            font-weight: 500;
+            font-family: 'Poppins', sans-serif;
+            transition: all 0.3s ease;
+        }
+
+        .btn-modal-add {
+            background: #6f4e37;
+            color: white;
+        }
+
+        .btn-modal-add:hover {
+            background: #5a3d2d;
+        }
+
+        .btn-modal-cancel {
+            background: #e0e0e0;
+            color: #333;
+        }
+
+        .btn-modal-cancel:hover {
+            background: #ccc;
+        }
+
+        /* HPP Modal */
+        .hpp-modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.5);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 1001;
+        }
+
+        .hpp-modal.active {
+            display: flex;
+        }
+
+        .hpp-modal-content {
+            background: white;
+            border-radius: 16px;
+            padding: 1.5rem;
+            width: 90%;
+            max-width: 600px;
+            max-height: 90vh;
+            overflow-y: auto;
+        }
+
+        .hpp-result {
+            background: #f0f8ff;
+            border: 2px solid #6f4e37;
+            border-radius: 8px;
+            padding: 1rem;
+            margin-top: 1.5rem;
+        }
+
+        .hpp-result h4 {
+            color: #6f4e37;
+            margin-bottom: 0.5rem;
+        }
+
+        .hpp-result .total-hpp {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: #6f4e37;
+        }
+
+        /* Back to Dashboard Button */
+        .btn-back-dashboard {
+            background: #6f4e37;
+            color: white;
+            border: 1px solid #6f4e37;
+            padding: 12px 24px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 0.95rem;
+            font-weight: 500;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            box-shadow: 0 2px 8px rgba(111, 78, 55, 0.2);
+        }
+
+        .btn-back-dashboard:hover {
+            background: #5a3d2d;
+            border-color: #5a3d2d;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(111, 78, 55, 0.3);
+        }
+
+        .btn-back-dashboard i {
+            font-size: 0.95rem;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .dashboard-navbar {
+                padding: 0.8rem 1rem;
+            }
+
+            .navbar-brand {
+                font-size: 1.1rem;
+            }
+
+            .admin-name {
+                display: none;
+            }
+
+            .main-container {
+                padding: 1rem;
+            }
+
+            .page-title {
+                font-size: 1.5rem;
+            }
+
+            .tabs {
+                flex-wrap: wrap;
+            }
+
+            .tab-btn {
+                padding: 10px 16px;
+                font-size: 0.9rem;
+            }
+
+            .product-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Dashboard Navbar -->
+    <nav class="dashboard-navbar">
+        <div class="navbar-left">
+            <img id="navLogo" src="logo.png" alt="" class="navbar-logo">
+            <span id="navBrand" class="navbar-brand"></span>
+        </div>
+        <div class="navbar-right">
+            <div class="admin-info" onclick="showAdminMenu()">
+                <span id="navAdminName" class="admin-name"></span>
+                <img id="navAdminPhoto" src="" alt="" class="admin-photo">
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Container -->
+    <div class="main-container">
+        <h1 class="page-title">Produk</h1>
+
+        <!-- Product Container -->
+        <div class="product-container">
+            <!-- Tabs -->
+            <div class="tabs">
+                <button class="tab-btn active" onclick="switchTab('coffee')">Coffee</button>
+                <button class="tab-btn" onclick="switchTab('noncoffee')">Non Coffee</button>
+                <button class="tab-btn" onclick="switchTab('snack')">Snack</button>
+            </div>
+
+            <!-- Tab Content: Coffee -->
+            <div class="tab-content active" id="coffee">
+                <button class="add-product-btn" onclick="addProduct('coffee')">
+                    <i class="fas fa-plus"></i>
+                    Tambah Produk Coffee
+                </button>
+                <div class="product-grid" id="coffeeGrid">
+                    <div class="empty-state">
+                        <i class="fas fa-coffee"></i>
+                        <p>Belum ada produk Coffee</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Tab Content: Non Coffee -->
+            <div class="tab-content" id="noncoffee">
+                <button class="add-product-btn" onclick="addProduct('noncoffee')">
+                    <i class="fas fa-plus"></i>
+                    Tambah Produk Non Coffee
+                </button>
+                <div class="product-grid" id="noncoffeeGrid">
+                    <div class="empty-state">
+                        <i class="fas fa-mug-hot"></i>
+                        <p>Belum ada produk Non Coffee</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Tab Content: Snack -->
+            <div class="tab-content" id="snack">
+                <button class="add-product-btn" onclick="addProduct('snack')">
+                    <i class="fas fa-plus"></i>
+                    Tambah Produk Snack
+                </button>
+                <div class="product-grid" id="snackGrid">
+                    <div class="empty-state">
+                        <i class="fas fa-cookie-bite"></i>
+                        <p>Belum ada produk Snack</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Back to Dashboard Button -->
+        <div style="text-align: center; margin-top: 2rem;">
+            <a href="dashboard.html" class="btn-back-dashboard">
+                <i class="fas fa-arrow-left"></i>
+                Kembali ke Dashboard
+            </a>
+        </div>
+    </div>
+
+    <!-- Add Product Modal -->
+    <div class="product-modal" id="productModal">
+        <div class="product-modal-content">
+            <div class="modal-header">
+                <h3>Tambah Produk</h3>
+                <button class="modal-close" onclick="closeProductModal()">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label for="productId">ID Produk</label>
+                    <input type="text" id="productId" class="form-input" placeholder="Masukkan ID produk">
+                </div>
+                <div class="form-group">
+                    <label for="productCategory">Kategori</label>
+                    <select id="productCategory" class="form-input">
+                        <option value="coffee">Coffee</option>
+                        <option value="noncoffee">Non Coffee</option>
+                        <option value="snack">Snack</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="productName">Nama Produk</label>
+                    <input type="text" id="productName" class="form-input" placeholder="Masukkan nama produk">
+                </div>
+                <div class="form-group">
+                    <label for="productDescription">Deskripsi</label>
+                    <textarea id="productDescription" class="form-input" placeholder="Masukkan deskripsi produk"></textarea>
+                </div>
+                <div class="form-group">
+                    <label for="productPrice">Harga</label>
+                    <div class="form-input-wrapper">
+                        <input type="number" id="productPrice" class="form-input" placeholder="Masukkan harga">
+                        <button class="btn-calc-hpp" onclick="showHPPModal()">
+                            <i class="fas fa-dollar-sign"></i>
+                        </button>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label for="productPhoto">Upload Photo</label>
+                    <input type="file" id="productPhoto" class="form-input" accept="image/*" onchange="previewPhoto()">
+                    <div class="photo-preview" id="photoPreview">
+                        <img id="previewImage" src="" alt="Preview">
+                        <button class="remove-photo" onclick="removePhoto()">Hapus Photo</button>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn-modal btn-modal-cancel" onclick="closeProductModal()">Cancel</button>
+                <button class="btn-modal btn-modal-add" onclick="addProductSubmit()">Tambah</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- HPP Calculation Modal -->
+    <div class="hpp-modal" id="hppModal">
+        <div class="hpp-modal-content">
+            <div class="modal-header">
+                <h3>Hitung Harga Pokok Produksi (HPP)</h3>
+                <button class="modal-close" onclick="closeHPPModal()">&times;</button>
+            </div>
+            <div class="modal-body">
+                <!-- Input Container -->
+                <div style="background: #f9f9f9; padding: 1rem; border-radius: 8px; margin-bottom: 1.5rem;">
+                    <div class="form-group">
+                        <label for="hppNamaBiaya">Nama Biaya</label>
+                        <input type="text" id="hppNamaBiaya" class="form-input" placeholder="Contoh: Bahan baku kopi">
+                    </div>
+                    <div class="form-group">
+                        <label for="hppHarga">Harga</label>
+                        <input type="number" id="hppHarga" class="form-input" placeholder="Masukkan harga">
+                    </div>
+                    <button class="btn-modal btn-modal-add" onclick="addHPPItem()" style="width: 100%;">Tambah</button>
+                </div>
+
+                <!-- Table -->
+                <table style="width: 100%; border-collapse: collapse; margin-bottom: 1rem;">
+                    <thead>
+                        <tr style="background: #6f4e37; color: white;">
+                            <th style="padding: 10px; text-align: left; border-radius: 8px 0 0 0;">Nama Biaya</th>
+                            <th style="padding: 10px; text-align: right;">Harga</th>
+                            <th style="padding: 10px; text-align: center; border-radius: 0 8px 0 0;">Aksi</th>
+                        </tr>
+                    </thead>
+                    <tbody id="hppTableBody">
+                        <!-- Items will be added here -->
+                    </tbody>
+                    <tfoot>
+                        <tr style="background: #f0f8ff; border: 2px solid #6f4e37;">
+                            <td style="padding: 10px; font-weight: 700;">Total</td>
+                            <td style="padding: 10px; text-align: right; font-weight: 700; color: #6f4e37;" id="hppTotal">Rp 0</td>
+                            <td></td>
+                        </tr>
+                    </tfoot>
+                </table>
+
+                <div class="hpp-result" id="hppResult" style="display: none;">
+                    <h4>Total HPP:</h4>
+                    <div class="total-hpp" id="totalHPP">Rp 0</div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn-modal btn-modal-cancel" onclick="closeHPPModal()">Cancel</button>
+                <button class="btn-modal btn-modal-add" onclick="calculateHPP()">Hitung</button>
+                <button class="btn-modal btn-modal-add" onclick="useHPPResult()" id="btnUseHPP" style="display: none;">Gunakan</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Supabase Configuration
+        const supabaseUrl = 'https://fzrmhmedruvzyvyvgudw.supabase.co';
+        const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZ6cm1obWVkcnV2enl2eXZndWR3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzc3NDkzODUsImV4cCI6MjA5MzMyNTM4NX0.0HNIWfahho-IswD2xUDcsADo6GgtN7DgBJj-SlznXNE';
+        let supabaseClient;
+        try {
+            supabaseClient = window.supabase.createClient(supabaseUrl, supabaseKey);
+        } catch(e) {
+            console.error('Supabase init error:', e);
+        }
+
+        // Load navbar data from Supabase
+        async function loadNavbarData() {
+            if (!supabaseClient) return;
+            try {
+                const { data, error } = await supabaseClient
+                    .from('identitas')
+                    .select('*')
+                    .limit(1);
+                
+                if (error) {
+                    console.error('Load navbar error:', error);
+                    return;
+                }
+                
+                if (data && data.length > 0) {
+                    const row = data[0];
+                    if (row.logo_usaha) document.getElementById('navLogo').src = row.logo_usaha;
+                    if (row.nama_usaha) document.getElementById('navBrand').textContent = row.nama_usaha;
+                    if (row.owner) document.getElementById('navAdminName').textContent = row.owner;
+                    if (row.photo_owner) document.getElementById('navAdminPhoto').src = row.photo_owner;
+                }
+            } catch(e) {
+                console.error('Load navbar error:', e);
+            }
+        }
+
+        // Switch Tab
+        function switchTab(tabName) {
+            // Remove active class from all tabs
+            document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+            document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
+            
+            // Add active class to selected tab
+            event.target.classList.add('active');
+            document.getElementById(tabName).classList.add('active');
+        }
+
+        // Show Product Modal
+        function showProductModal(category) {
+            document.getElementById('productModal').classList.add('active');
+            document.getElementById('productCategory').value = category;
+            generateProductId(category);
+        }
+
+        // Generate Product ID
+        function generateProductId(category) {
+            const productName = document.getElementById('productName').value;
+            let prefix = '';
+            
+            if (category === 'coffee') {
+                prefix = 'ID.C';
+            } else if (category === 'noncoffee') {
+                prefix = 'ID.NC';
+            } else if (category === 'snack') {
+                prefix = 'ID.S';
+            }
+
+            // Generate 6 digit random code
+            const randomCode = Math.floor(100000 + Math.random() * 900000);
+            
+            // Generate ID
+            const productId = productName ? `${prefix}-${productName}-${randomCode}` : prefix;
+            document.getElementById('productId').value = productId;
+        }
+
+        // Close Product Modal
+        function closeProductModal() {
+            document.getElementById('productModal').classList.remove('active');
+            // Reset form
+            document.getElementById('productId').value = '';
+            document.getElementById('productName').value = '';
+            document.getElementById('productDescription').value = '';
+            document.getElementById('productPrice').value = '';
+            document.getElementById('productPhoto').value = '';
+            removePhoto();
+        }
+
+        // Preview Photo
+        function previewPhoto() {
+            const fileInput = document.getElementById('productPhoto');
+            const file = fileInput.files[0];
+            
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    document.getElementById('previewImage').src = e.target.result;
+                    document.getElementById('photoPreview').classList.add('active');
+                };
+                reader.readAsDataURL(file);
+            }
+        }
+
+        // Remove Photo
+        function removePhoto() {
+            document.getElementById('productPhoto').value = '';
+            document.getElementById('previewImage').src = '';
+            document.getElementById('photoPreview').classList.remove('active');
+        }
+
+        // Add Product (placeholder)
+        function addProduct(category) {
+            showProductModal(category);
+        }
+
+        // Handle Add Product Form
+        async function addProductSubmit() {
+            const productId = document.getElementById('productId').value;
+            const productCategory = document.getElementById('productCategory').value;
+            const productName = document.getElementById('productName').value;
+            const productDescription = document.getElementById('productDescription').value;
+            const productPrice = document.getElementById('productPrice').value;
+            const productPhoto = document.getElementById('productPhoto').files[0];
+
+            // Validate inputs
+            if (!productId || !productName || !productPrice) {
+                alert('ID Produk, Nama Produk, dan Harga harus diisi!');
+                return;
+            }
+
+            try {
+                let photoUrl = '';
+
+                // Upload photo to bucket if exists
+                if (productPhoto) {
+                    const fileName = `${productId}-${productPhoto.name}`;
+                    const { data: uploadData, error: uploadError } = await supabaseClient
+                        .storage
+                        .from('aset')
+                        .upload(fileName, productPhoto);
+
+                    if (uploadError) {
+                        console.error('Upload photo error:', uploadError);
+                        alert('Gagal mengupload photo!');
+                        return;
+                    }
+
+                    // Get public URL
+                    const { data: publicUrlData } = supabaseClient
+                        .storage
+                        .from('aset')
+                        .getPublicUrl(fileName);
+                    
+                    photoUrl = publicUrlData.publicUrl;
+                }
+
+                // Save product data to Supabase
+                const { data, error } = await supabaseClient
+                    .from('produk')
+                    .insert([
+                        {
+                            id: productId,
+                            kategori: productCategory,
+                            nama_produk: productName,
+                            deskripsi: productDescription,
+                            harga: productPrice,
+                            photo: photoUrl
+                        }
+                    ]);
+
+                if (error) {
+                    console.error('Save product error:', error);
+                    alert('Gagal menyimpan produk!');
+                    return;
+                }
+
+                alert('Produk berhasil ditambahkan!');
+                closeProductModal();
+                
+                // Reload products to display in grid
+                loadProducts(productCategory);
+
+            } catch(e) {
+                console.error('Add product error:', e);
+                alert('Terjadi kesalahan saat menambahkan produk!');
+            }
+        }
+
+        // Load Products from Supabase
+        async function loadProducts(category) {
+            if (!supabaseClient) return;
+            
+            try {
+                const { data, error } = await supabaseClient
+                    .from('produk')
+                    .select('*')
+                    .eq('kategori', category);
+
+                if (error) {
+                    console.error('Load products error:', error);
+                    return;
+                }
+
+                const gridId = category + 'Grid';
+                const grid = document.getElementById(gridId);
+                
+                if (!data || data.length === 0) {
+                    grid.innerHTML = `
+                        <div class="empty-state">
+                            <i class="fas fa-${category === 'coffee' ? 'coffee' : category === 'noncoffee' ? 'mug-hot' : 'cookie-bite'}"></i>
+                            <p>Belum ada produk ${category === 'coffee' ? 'Coffee' : category === 'noncoffee' ? 'Non Coffee' : 'Snack'}</p>
+                        </div>
+                    `;
+                    return;
+                }
+
+                grid.innerHTML = '';
+                data.forEach(product => {
+                    grid.innerHTML += `
+                        <div class="product-card">
+                            <img src="${product.photo || 'https://via.placeholder.com/300x200?text=No+Image'}" alt="${product.nama_produk}" class="product-image">
+                            <div class="product-info">
+                                <div class="product-name">${product.nama_produk}</div>
+                                <div class="product-price">Rp ${parseInt(product.harga).toLocaleString('id-ID')}</div>
+                                <div class="product-actions">
+                                    <button class="btn-action btn-edit" onclick="editProduct('${product.id}')">
+                                        <i class="fas fa-edit"></i> Edit
+                                    </button>
+                                    <button class="btn-action btn-delete" onclick="deleteProduct('${product.id}')">
+                                        <i class="fas fa-trash"></i> Hapus
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                });
+            } catch(e) {
+                console.error('Load products error:', e);
+            }
+        }
+
+        // Edit Product (placeholder)
+        function editProduct(productId) {
+            alert('Fitur edit produk akan segera hadir!');
+        }
+
+        // Delete Product (placeholder)
+        async function deleteProduct(productId) {
+            if (!confirm('Apakah Anda yakin ingin menghapus produk ini?')) {
+                return;
+            }
+
+            if (!supabaseClient) return;
+            
+            try {
+                const { error } = await supabaseClient
+                    .from('produk')
+                    .delete()
+                    .eq('id', productId);
+
+                if (error) {
+                    console.error('Delete product error:', error);
+                    alert('Gagal menghapus produk!');
+                    return;
+                }
+
+                alert('Produk berhasil dihapus!');
+                // Reload all categories
+                loadProducts('coffee');
+                loadProducts('noncoffee');
+                loadProducts('snack');
+            } catch(e) {
+                console.error('Delete product error:', e);
+                alert('Terjadi kesalahan saat menghapus produk!');
+            }
+        }
+
+        // HPP Items Array
+        let hppItems = [];
+
+        // Show HPP Modal
+        function showHPPModal() {
+            document.getElementById('hppModal').classList.add('active');
+            // Reset form and table
+            hppItems = [];
+            document.getElementById('hppNamaBiaya').value = '';
+            document.getElementById('hppHarga').value = '';
+            document.getElementById('hppResult').style.display = 'none';
+            document.getElementById('btnUseHPP').style.display = 'none';
+            renderHPPTable();
+        }
+
+        // Close HPP Modal
+        function closeHPPModal() {
+            document.getElementById('hppModal').classList.remove('active');
+        }
+
+        // Add HPP Item
+        function addHPPItem() {
+            const namaBiaya = document.getElementById('hppNamaBiaya').value;
+            const harga = parseFloat(document.getElementById('hppHarga').value) || 0;
+
+            if (!namaBiaya) {
+                alert('Nama biaya harus diisi!');
+                return;
+            }
+
+            if (harga <= 0) {
+                alert('Harga harus lebih dari 0!');
+                return;
+            }
+
+            hppItems.push({
+                id: Date.now(),
+                nama: namaBiaya,
+                harga: harga
+            });
+
+            // Clear inputs
+            document.getElementById('hppNamaBiaya').value = '';
+            document.getElementById('hppHarga').value = '';
+
+            renderHPPTable();
+        }
+
+        // Delete HPP Item
+        function deleteHPPItem(id) {
+            hppItems = hppItems.filter(item => item.id !== id);
+            renderHPPTable();
+        }
+
+        // Render HPP Table
+        function renderHPPTable() {
+            const tbody = document.getElementById('hppTableBody');
+            tbody.innerHTML = '';
+
+            let total = 0;
+
+            hppItems.forEach(item => {
+                total += item.harga;
+                tbody.innerHTML += `
+                    <tr style="border-bottom: 1px solid #e0e0e0;">
+                        <td style="padding: 10px;">${item.nama}</td>
+                        <td style="padding: 10px; text-align: right;">Rp ${item.harga.toLocaleString('id-ID')}</td>
+                        <td style="padding: 10px; text-align: center;">
+                            <button onclick="deleteHPPItem(${item.id})" style="background: #ffebee; color: #dc3545; border: none; padding: 5px 10px; border-radius: 4px; cursor: pointer;">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        </td>
+                    </tr>
+                `;
+            });
+
+            document.getElementById('hppTotal').textContent = 'Rp ' + total.toLocaleString('id-ID');
+        }
+
+        // Calculate HPP
+        function calculateHPP() {
+            if (hppItems.length === 0) {
+                alert('Tambahkan minimal satu biaya!');
+                return;
+            }
+
+            const totalBiaya = hppItems.reduce((sum, item) => sum + item.harga, 0);
+
+            document.getElementById('totalHPP').textContent = 'Rp ' + totalBiaya.toLocaleString('id-ID');
+            document.getElementById('hppResult').style.display = 'block';
+            document.getElementById('btnUseHPP').style.display = 'inline-block';
+        }
+
+        // Use HPP Result
+        function useHPPResult() {
+            const hppText = document.getElementById('totalHPP').textContent;
+            const hppValue = parseFloat(hppText.replace('Rp ', '').replace(/\./g, '').replace(/,/g, '.'));
+            document.getElementById('productPrice').value = hppValue;
+            closeHPPModal();
+        }
+
+        // Show Admin Menu (placeholder)
+        function showAdminMenu() {
+            alert('Menu admin akan segera hadir!');
+        }
+
+        document.addEventListener('DOMContentLoaded', function() {
+            loadNavbarData();
+            
+            // Add event listener to productName for auto-generate ID
+            document.getElementById('productName').addEventListener('input', function() {
+                const category = document.getElementById('productCategory').value;
+                generateProductId(category);
+            });
+            
+            // Add event listener to productCategory for auto-generate ID when category changes
+            document.getElementById('productCategory').addEventListener('change', function() {
+                const category = this.value;
+                generateProductId(category);
+            });
+
+            // Load products for all categories
+            loadProducts('coffee');
+            loadProducts('noncoffee');
+            loadProducts('snack');
+        });
+    </script>
+</body>
+</html>

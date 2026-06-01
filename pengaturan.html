@@ -1,0 +1,2238 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pengaturan Aplikasi - Nerai Coffee</title>
+    <link rel="stylesheet" href="styles.css">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Poppins', sans-serif;
+            background: #f5f5f5;
+            min-height: 100vh;
+        }
+
+        /* Dashboard Navbar */
+        .dashboard-navbar {
+            background: #6f4e37;
+            padding: 0.8rem 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        .navbar-left {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .navbar-logo {
+            width: 45px;
+            height: 45px;
+            border-radius: 50%;
+            object-fit: contain;
+            background: white;
+            padding: 3px;
+        }
+
+        .navbar-brand {
+            color: white;
+            font-size: 1.4rem;
+            font-weight: 600;
+        }
+
+        .navbar-right {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .btn-back-dashboard {
+            background: #6f4e37;
+            color: white;
+            border: 1px solid #6f4e37;
+            padding: 12px 24px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 0.95rem;
+            font-weight: 500;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            box-shadow: 0 2px 8px rgba(111, 78, 55, 0.2);
+        }
+
+        .btn-back-dashboard:hover {
+            background: #5a3d2d;
+            border-color: #5a3d2d;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(111, 78, 55, 0.3);
+        }
+
+        .btn-back-dashboard i {
+            font-size: 0.95rem;
+        }
+
+        .admin-info {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            cursor: pointer;
+            padding: 6px 12px;
+            border-radius: 25px;
+            transition: background 0.3s ease;
+        }
+
+        .admin-info:hover {
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        .admin-name {
+            color: white;
+            font-size: 0.95rem;
+            font-weight: 500;
+        }
+
+        .admin-photo {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 2px solid white;
+        }
+
+        /* Main Container */
+        .main-container {
+            padding: 2rem;
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        .page-title {
+            font-size: 1.8rem;
+            color: #333;
+            margin-bottom: 1.5rem;
+            text-align: center;
+            font-weight: 600;
+        }
+
+        /* Settings Container */
+        .settings-container {
+            background: white;
+            border-radius: 16px;
+            padding: 1.5rem;
+            padding-left: calc(1.5rem + 10px);
+            border-left: 4px solid #6f4e37;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+        }
+
+        /* Settings Accordion */
+        .settings-accordion {
+            margin-top: 1rem;
+        }
+
+        .accordion-item {
+            border: 2px solid #e0e0e0;
+            border-radius: 12px;
+            margin-bottom: 1rem;
+            overflow: hidden;
+            transition: all 0.3s ease;
+        }
+
+        .accordion-item:hover {
+            border-color: #6f4e37;
+        }
+
+        .accordion-header {
+            background: white;
+            padding: 1rem 1.2rem;
+            cursor: pointer;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            transition: background 0.3s ease;
+        }
+
+        .accordion-header:hover {
+            background: #fafafa;
+        }
+
+        .accordion-header.active {
+            background: #6f4e37;
+            color: white;
+        }
+
+        .accordion-title {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            font-weight: 600;
+            font-size: 1rem;
+        }
+
+        .accordion-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.1rem;
+            background: #f5f5f5;
+            color: #6f4e37;
+        }
+
+        .accordion-header.active .accordion-icon {
+            background: rgba(255, 255, 255, 0.2);
+            color: white;
+        }
+
+        .accordion-arrow {
+            transition: transform 0.3s ease;
+        }
+
+        .accordion-header.active .accordion-arrow {
+            transform: rotate(180deg);
+        }
+
+        .accordion-content {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.3s ease;
+            background: #fafafa;
+        }
+
+        .accordion-content.active {
+            max-height: 2000px;
+        }
+
+        .accordion-body {
+            padding: 10px;
+        }
+
+        /* Form Styles */
+        .form-group {
+            margin-bottom: 1rem;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 0.5rem;
+            color: #333;
+            font-weight: 500;
+            font-size: 0.9rem;
+        }
+
+        .form-select {
+            width: 100%;
+            padding: 0.7rem;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 0.95rem;
+            font-family: 'Poppins', sans-serif;
+            color: #333;
+            background: white;
+            cursor: pointer;
+            transition: border-color 0.3s ease;
+        }
+
+        .form-select:focus {
+            outline: none;
+            border-color: #6f4e37;
+        }
+
+        .btn-add-location {
+            width: 100%;
+            padding: 0.8rem 1rem;
+            background: #6f4e37;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 0.95rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+
+        .btn-add-location:hover {
+            background: #5a3d2d;
+        }
+
+        .btn-add-location i {
+            font-size: 1rem;
+        }
+
+        .form-group-with-btn {
+            display: flex;
+            align-items: flex-end;
+            gap: 10px;
+        }
+
+        .btn-add-location-icon {
+            width: 50px;
+            height: 46px;
+            background: #6f4e37;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: background 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 4px;
+            flex-shrink: 0;
+        }
+
+        .btn-add-location-icon:hover {
+            background: #5a3d2d;
+        }
+
+        .btn-add-location-icon i {
+            font-size: 0.9rem;
+        }
+
+        /* Location Modal */
+        .location-modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.5);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+
+        .location-modal.active {
+            display: flex;
+        }
+
+        .location-modal-content {
+            background: white;
+            border-radius: 16px;
+            padding: 1.5rem;
+            width: 90%;
+            max-width: 500px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+            max-height: 90vh;
+            overflow-y: auto;
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+        }
+
+        .modal-header h3 {
+            margin: 0;
+            color: #333;
+            font-size: 1.2rem;
+        }
+
+        .modal-close {
+            background: none;
+            border: none;
+            font-size: 1.5rem;
+            cursor: pointer;
+            color: #888;
+            transition: color 0.3s ease;
+        }
+
+        .modal-close:hover {
+            color: #333;
+        }
+
+        .modal-body {
+            margin-bottom: 1rem;
+        }
+
+        .map-container {
+            margin-bottom: 1rem;
+        }
+
+        .form-input {
+            width: 100%;
+            padding: 0.7rem;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 0.95rem;
+            font-family: 'Poppins', sans-serif;
+            color: #333;
+            background: white;
+            transition: border-color 0.3s ease;
+        }
+
+        .form-input:focus {
+            outline: none;
+            border-color: #6f4e37;
+        }
+
+        /* Operating Hours Styles */
+        .operating-hours-row {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            padding: 0.75rem;
+            background: #fff;
+            border-radius: 8px;
+            margin-bottom: 0.5rem;
+            border: 1px solid #e0e0e0;
+        }
+
+        .day-label {
+            width: 80px;
+            font-weight: 600;
+            color: #333;
+            font-size: 0.95rem;
+        }
+
+        .time-inputs {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            flex: 1;
+        }
+
+        .time-inputs .form-input {
+            width: 120px;
+            padding: 0.5rem;
+        }
+
+        .time-inputs span {
+            color: #666;
+            font-weight: 600;
+        }
+
+        .closed-checkbox {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-size: 0.9rem;
+            color: #555;
+            cursor: pointer;
+        }
+
+        .closed-checkbox input {
+            width: 18px;
+            height: 18px;
+            cursor: pointer;
+        }
+
+        .btn-save-hours {
+            background: #6f4e37;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 0.95rem;
+            font-weight: 600;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            transition: all 0.3s ease;
+        }
+
+        .btn-save-hours:hover {
+            background: #5a3e2b;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(111, 78, 55, 0.3);
+        }
+
+        .modal-footer {
+            display: flex;
+            gap: 0.5rem;
+            justify-content: flex-end;
+        }
+
+        .btn-modal {
+            padding: 0.6rem 1.2rem;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+
+        .btn-modal-cancel {
+            background: #f5f5f5;
+            color: #666;
+        }
+
+        .btn-modal-cancel:hover {
+            background: #e0e0e0;
+        }
+
+        .btn-modal-confirm {
+            background: #6f4e37;
+            color: white;
+        }
+
+        .btn-modal-confirm:hover {
+            background: #5a3d2d;
+        }
+
+        .btn-add-payment {
+            width: 100%;
+            padding: 0.8rem 1rem;
+            background: #6f4e37;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 0.95rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+
+        .btn-add-payment:hover {
+            background: #5a3d2d;
+        }
+
+        .btn-add-payment i {
+            font-size: 1rem;
+        }
+
+        .payment-table-container {
+            margin-top: 1rem;
+        }
+
+        .payment-table {
+            width: 100%;
+            border-collapse: collapse;
+            background: white;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        .payment-table th,
+        .payment-table td {
+            padding: 0.8rem;
+            text-align: left;
+            border-bottom: 1px solid #e0e0e0;
+        }
+
+        .payment-table th {
+            background: #f5f5f5;
+            font-weight: 600;
+            color: #6f4e37;
+            font-size: 0.9rem;
+        }
+
+        .payment-table td {
+            color: #333;
+            font-size: 0.9rem;
+        }
+
+        .payment-table tbody tr:last-child td {
+            border-bottom: none;
+        }
+
+        .btn-delete {
+            background: #e74c3c;
+            color: white;
+            border: none;
+            padding: 0.4rem 0.8rem;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 0.85rem;
+            transition: background 0.3s ease;
+        }
+
+        .btn-delete:hover {
+            background: #c0392b;
+        }
+
+        .payment-modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.5);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+
+        .payment-modal.active {
+            display: flex;
+        }
+
+        .payment-modal-content {
+            background: white;
+            border-radius: 16px;
+            padding: 1.5rem;
+            width: 90%;
+            max-width: 500px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+            max-height: 90vh;
+            overflow-y: auto;
+        }
+
+        /* Calendar Styles */
+        .calendar-wrapper {
+            position: sticky;
+            top: 0;
+            background: white;
+            border-radius: 12px;
+            padding: 1rem;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+            max-height: 500px;
+            overflow-y: auto;
+        }
+
+        .calendar-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+            padding-bottom: 0.5rem;
+            border-bottom: 2px solid #f0f0f0;
+        }
+
+        .calendar-header h3 {
+            margin: 0;
+            color: #333;
+            font-size: 1.1rem;
+            font-weight: 600;
+        }
+
+        .calendar-nav-btn {
+            width: 36px;
+            height: 36px;
+            border: none;
+            border-radius: 8px;
+            background: #6f4e37;
+            color: white;
+            cursor: pointer;
+            transition: background 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .calendar-nav-btn:hover {
+            background: #5a3d2d;
+        }
+
+        .calendar-grid {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            gap: 4px;
+            margin-bottom: 0.5rem;
+        }
+
+        .calendar-day-name {
+            text-align: center;
+            font-weight: 600;
+            font-size: 0.8rem;
+            color: #6f4e37;
+            padding: 0.5rem 0;
+        }
+
+        .calendar-day {
+            text-align: center;
+            padding: 0.6rem 0.3rem;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            font-size: 0.9rem;
+            background: #fafafa;
+        }
+
+        .calendar-day:hover {
+            background: #6f4e37;
+            color: white;
+        }
+
+        .calendar-day.empty {
+            background: transparent;
+            cursor: default;
+        }
+
+        .calendar-day.today {
+            background: #6f4e37;
+            color: white;
+            font-weight: 600;
+        }
+
+        .calendar-day.holiday {
+            background: #e57373;
+            color: white;
+        }
+
+        /* Holiday Table */
+        .holiday-table-container {
+            margin-top: 1rem;
+            padding-top: 1rem;
+            border-top: 2px solid #f0f0f0;
+        }
+
+        .holiday-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .holiday-table th,
+        .holiday-table td {
+            padding: 0.5rem;
+            text-align: left;
+            border-bottom: 1px solid #e0e0e0;
+        }
+
+        .holiday-table th {
+            background: #f5f5f5;
+            font-weight: 600;
+            color: #6f4e37;
+        }
+
+        .holiday-table td {
+            color: #333;
+        }
+
+        /* Sticky header for stock table */
+        #stockTableWrapper thead th {
+            position: sticky;
+            top: 0;
+            z-index: 2;
+            background: #f5f5f5;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .dashboard-navbar {
+                padding: 0.8rem 1rem;
+            }
+
+            .navbar-brand {
+                font-size: 1.1rem;
+            }
+
+            .admin-name {
+                display: none;
+            }
+
+            .main-container {
+                padding: 1rem;
+            }
+
+            .settings-container {
+                padding: 1rem;
+                padding-left: calc(1rem + 10px);
+            }
+
+            .page-title {
+                font-size: 1.5rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Dashboard Navbar -->
+    <nav class="dashboard-navbar">
+        <div class="navbar-left">
+            <img id="navLogo" src="logo.png" alt="" class="navbar-logo">
+            <span id="navBrand" class="navbar-brand"></span>
+        </div>
+        <div class="navbar-right">
+            <div class="admin-info" onclick="showAdminMenu()">
+                <span id="navAdminName" class="admin-name"></span>
+                <img id="navAdminPhoto" src="" alt="" class="admin-photo">
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Container -->
+    <div class="main-container">
+        <h1 class="page-title">Pengaturan Aplikasi</h1>
+
+        <!-- Settings Container -->
+        <div class="settings-container">
+            <!-- Settings Accordion -->
+            <div class="settings-accordion">
+                <!-- Pengaturan Libur -->
+                <div class="accordion-item">
+                    <div class="accordion-header" onclick="toggleAccordion(this)">
+                        <div class="accordion-title">
+                            <div class="accordion-icon">
+                                <i class="fas fa-calendar-times"></i>
+                            </div>
+                            <span>Pengaturan Libur</span>
+                        </div>
+                        <i class="fas fa-chevron-down accordion-arrow"></i>
+                    </div>
+                    <div class="accordion-content">
+                        <div class="accordion-body">
+                            <div class="calendar-wrapper">
+                                <div class="calendar-header">
+                                    <button class="calendar-nav-btn" onclick="changeMonth(-1)">
+                                        <i class="fas fa-chevron-left"></i>
+                                    </button>
+                                    <h3 id="calendarMonthYear"></h3>
+                                    <button class="calendar-nav-btn" onclick="changeMonth(1)">
+                                        <i class="fas fa-chevron-right"></i>
+                                    </button>
+                                </div>
+                                <div class="calendar-grid">
+                                    <div class="calendar-day-name">Ming</div>
+                                    <div class="calendar-day-name">Sen</div>
+                                    <div class="calendar-day-name">Sel</div>
+                                    <div class="calendar-day-name">Rab</div>
+                                    <div class="calendar-day-name">Kam</div>
+                                    <div class="calendar-day-name">Jum</div>
+                                    <div class="calendar-day-name">Sab</div>
+                                </div>
+                                <div class="calendar-grid" id="calendarDays"></div>
+                                <div class="holiday-table-container" id="holidayTableContainer" style="display: none; margin-top: 1rem;">
+                                    <h4 style="margin-bottom: 0.5rem; color: #333;">Informasi Libur</h4>
+                                    <table class="holiday-table">
+                                        <thead>
+                                            <tr>
+                                                <th>No</th>
+                                                <th>Tanggal</th>
+                                                <th>Status</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody id="holidayTableBody">
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Lokasi -->
+                <div class="accordion-item">
+                    <div class="accordion-header" onclick="toggleAccordion(this)">
+                        <div class="accordion-title">
+                            <div class="accordion-icon">
+                                <i class="fas fa-map-marker-alt"></i>
+                            </div>
+                            <span>Lokasi</span>
+                        </div>
+                        <i class="fas fa-chevron-down accordion-arrow"></i>
+                    </div>
+                    <div class="accordion-content">
+                        <div class="accordion-body">
+                            <div class="location-form">
+                                <div class="form-group-with-btn">
+                                    <div class="form-group" style="flex: 1; margin-bottom: 0;">
+                                        <label for="locationSelect">Pilih Lokasi</label>
+                                        <select id="locationSelect" class="form-select" onchange="onLocationSelect()">
+                                            <option value="">-- Pilih Lokasi --</option>
+                                        </select>
+                                    </div>
+                                    <button class="btn-add-location-icon" onclick="showAddLocationModal()">
+                                        <i class="fas fa-plus"></i>
+                                        <i class="fas fa-map-marker-alt"></i>
+                                    </button>
+                                </div>
+                                <div id="selectedLocationDisplay" style="display: none; margin-top: 1rem;">
+                                    <p style="color: #333; font-size: 0.95rem; font-weight: 600; margin-bottom: 0.5rem;">
+                                        <i class="fas fa-map-marker-alt" style="color: #6f4e37;"></i>
+                                        <span id="selectedLocationName">-</span>
+                                    </p>
+                                    <div id="selectedLocationMap" style="width: 100%; height: 250px; border-radius: 8px; margin-bottom: 0.5rem;"></div>
+                                    <p style="color: #333; font-size: 0.9rem;">
+                                        <strong>Koordinat:</strong> <span id="selectedCoords"></span>
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Akun Pembayaran -->
+                <div class="accordion-item">
+                    <div class="accordion-header" onclick="toggleAccordion(this)">
+                        <div class="accordion-title">
+                            <div class="accordion-icon">
+                                <i class="fas fa-wallet"></i>
+                            </div>
+                            <span>Akun Pembayaran</span>
+                        </div>
+                        <i class="fas fa-chevron-down accordion-arrow"></i>
+                    </div>
+                    <div class="accordion-content">
+                        <div class="accordion-body">
+                            <button class="btn-add-payment" onclick="showAddPaymentModal()">
+                                <i class="fas fa-plus"></i> Tambah Akun Pembayaran
+                            </button>
+                            <div class="payment-table-container" id="paymentTableContainer" style="display: none; margin-top: 1rem;">
+                                <h4 style="margin-bottom: 0.5rem; color: #333;">Daftar Akun Pembayaran</h4>
+                                <table class="payment-table">
+                                    <thead>
+                                        <tr>
+                                            <th>No</th>
+                                            <th>Nama Bank/E Wallet</th>
+                                            <th>Nama Pemilik Akun</th>
+                                            <th>Nomor Rekening/Referensi</th>
+                                            <th>Aksi</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="paymentTableBody">
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Jam Operasional -->
+                <div class="accordion-item">
+                    <div class="accordion-header" onclick="toggleAccordion(this)">
+                        <div class="accordion-title">
+                            <div class="accordion-icon">
+                                <i class="fas fa-clock"></i>
+                            </div>
+                            <span>Jam Operasional</span>
+                        </div>
+                        <i class="fas fa-chevron-down accordion-arrow"></i>
+                    </div>
+                    <div class="accordion-content">
+                        <div class="accordion-body">
+                            <div class="form-group">
+                                <label for="jamOperasionalId">ID</label>
+                                <input type="text" id="jamOperasionalId" class="form-input" placeholder="Masukkan ID" readonly>
+                            </div>
+                            <div class="form-group">
+                                <label for="jamBuka">Jam Buka</label>
+                                <input type="time" id="jamBuka" class="form-input" placeholder="Masukkan jam buka">
+                            </div>
+                            <div class="form-group">
+                                <label for="jamTutup">Jam Tutup</label>
+                                <input type="time" id="jamTutup" class="form-input" placeholder="Masukkan jam tutup">
+                            </div>
+                            <div style="display: flex; gap: 0.5rem; margin-top: 1rem;">
+                                <button class="btn-save-hours" onclick="saveOperatingHours()" style="flex: 1;">
+                                    <i class="fas fa-save"></i> Simpan
+                                </button>
+                                <button class="btn-save-hours" onclick="updateOperatingHours()" style="flex: 1; background: #2e7d32;">
+                                    <i class="fas fa-edit"></i> Update
+                                </button>
+                                <button class="btn-save-hours" onclick="resetOperatingHours()" style="flex: 1; background: #d32f2f;">
+                                    <i class="fas fa-redo"></i> Reset
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Stok Hari Ini -->
+                <div class="accordion-item">
+                    <div class="accordion-header" onclick="toggleAccordion(this)">
+                        <div class="accordion-title">
+                            <div class="accordion-icon">
+                                <i class="fas fa-boxes-stacked"></i>
+                            </div>
+                            <span>Stok Hari Ini</span>
+                        </div>
+                        <i class="fas fa-chevron-down accordion-arrow"></i>
+                    </div>
+                    <div class="accordion-content">
+                        <div class="accordion-body">
+                            <div style="display: flex; justify-content: flex-end; margin-bottom: 0.8rem;">
+                                <button onclick="showResetStokModal()"
+                                    style="background:#d32f2f; color:white; border:none; padding:9px 18px; border-radius:8px; cursor:pointer; font-size:0.88rem; font-weight:600; font-family:'Poppins',sans-serif; display:inline-flex; align-items:center; gap:7px; transition:background 0.2s; box-shadow:0 2px 6px rgba(211,47,47,0.25);"
+                                    onmouseover="this.style.background='#b71c1c'" onmouseout="this.style.background='#d32f2f'">
+                                    <i class="fas fa-redo-alt"></i> Reset Stok
+                                </button>
+                            </div>
+                            <div id="stockTableWrapper" style="overflow-x: auto; overflow-y: auto; max-height: 285px; -webkit-overflow-scrolling: touch; margin-bottom: 1rem; border: 1px solid #e0e0e0; border-radius: 8px;">
+                                <table class="payment-table" style="min-width: 950px;">
+                                    <thead>
+                                        <tr>
+                                            <th>No</th>
+                                            <th>ID Produk</th>
+                                            <th>Kategori</th>
+                                            <th>Nama Produk</th>
+                                            <th>Deskripsi</th>
+                                            <th>Harga</th>
+                                            <th>Photo</th>
+                                            <th>Jumlah Stok</th>
+                                            <th>Aksi</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="stockTableBody">
+                                    </tbody>
+                                </table>
+                            </div>
+                            <div id="stockEmptyState" style="text-align: center; padding: 2rem; color: #999;">
+                                <i class="fas fa-box-open" style="font-size: 2.5rem; margin-bottom: 0.5rem; display: block;"></i>
+                                <p>Belum ada data stok hari ini</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Back to Dashboard Button -->
+        <div style="text-align: center; margin-top: 2rem;">
+            <a href="dashboard.html" class="btn-back-dashboard">
+                <i class="fas fa-arrow-left"></i>
+                Kembali ke Dashboard
+            </a>
+        </div>
+    </div>
+
+    <!-- Add Payment Modal -->
+    <div class="payment-modal" id="paymentModal">
+        <div class="payment-modal-content">
+            <div class="modal-header">
+                <h3>Tambah Akun Pembayaran</h3>
+                <button class="modal-close" onclick="closePaymentModal()">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label for="paymentNo">No</label>
+                    <input type="text" id="paymentNo" class="form-input" placeholder="Masukkan nomor">
+                </div>
+                <div class="form-group">
+                    <label for="paymentBank">Nama Bank/E-Wallet</label>
+                    <input type="text" id="paymentBank" class="form-input" placeholder="Contoh: BCA, DANA, GOPAY">
+                </div>
+                <div class="form-group">
+                    <label for="paymentOwner">Nama Pemilik Akun</label>
+                    <input type="text" id="paymentOwner" class="form-input" placeholder="Masukkan nama pemilik">
+                </div>
+                <div class="form-group">
+                    <label for="paymentNumber">Nomor Rekening/Referensi</label>
+                    <input type="text" id="paymentNumber" class="form-input" placeholder="Masukkan nomor rekening">
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn-modal btn-modal-cancel" onclick="closePaymentModal()">Cancel</button>
+                <button class="btn-modal btn-modal-confirm" onclick="addPaymentAccount()">Tambah</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Add Stock Modal -->
+    <div class="payment-modal" id="stockModal">
+        <div class="payment-modal-content">
+            <div class="modal-header">
+                <h3>Tambah Stok Hari Ini</h3>
+                <button class="modal-close" onclick="closeStockModal()">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label for="stockProduk">Nama Produk</label>
+                    <select id="stockProduk" class="form-select">
+                        <option value="">-- Pilih Produk --</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="stockAwal">Stok Awal</label>
+                    <input type="number" id="stockAwal" class="form-input" placeholder="Masukkan stok awal" value="0" min="0">
+                </div>
+                <div class="form-group">
+                    <label for="stockMasuk">Stok Masuk</label>
+                    <input type="number" id="stockMasuk" class="form-input" placeholder="Masukkan stok masuk" value="0" min="0">
+                </div>
+                <div class="form-group">
+                    <label for="stockTerpakai">Terpakai</label>
+                    <input type="number" id="stockTerpakai" class="form-input" placeholder="Masukkan jumlah terpakai" value="0" min="0">
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn-modal btn-modal-cancel" onclick="closeStockModal()">Cancel</button>
+                <button class="btn-modal btn-modal-confirm" onclick="addStock()">Tambah</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Update Stok Modal -->
+    <div class="payment-modal" id="updateStokModal">
+        <div class="payment-modal-content">
+            <div class="modal-header">
+                <h3><i class="fas fa-edit" style="color:#6f4e37; margin-right:8px;"></i>Update Stok</h3>
+                <button class="modal-close" onclick="closeUpdateStokModal()">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label>ID Produk</label>
+                    <input type="text" id="updateStokId" class="form-input" readonly style="background:#f5f5f5; color:#888;">
+                </div>
+                <div class="form-group">
+                    <label>Nama Produk</label>
+                    <input type="text" id="updateStokNama" class="form-input" readonly style="background:#f5f5f5; color:#888;">
+                </div>
+                <div class="form-group">
+                    <label for="updateStokJumlah">Jumlah Stok Baru</label>
+                    <input type="number" id="updateStokJumlah" class="form-input" placeholder="Masukkan jumlah stok" min="0">
+                </div>
+                <div id="updateStokMsg" style="display:none; margin-top:0.5rem; padding:0.6rem 1rem; border-radius:8px; font-size:0.9rem;"></div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn-modal btn-modal-cancel" onclick="closeUpdateStokModal()">Batal</button>
+                <button class="btn-modal btn-modal-confirm" onclick="saveUpdateStok()">
+                    <i class="fas fa-save"></i> Simpan
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Reset Stok Modal -->
+    <div class="payment-modal" id="resetStokModal">
+        <div class="payment-modal-content" style="max-width:420px;">
+            <div class="modal-header">
+                <h3 style="display:flex;align-items:center;gap:8px;">
+                    <i class="fas fa-exclamation-triangle" style="color:#d32f2f;"></i> Reset Stok
+                </h3>
+                <button class="modal-close" onclick="closeResetStokModal()">&times;</button>
+            </div>
+            <div class="modal-body" style="padding:1rem 0;">
+                <p style="color:#444; font-size:0.95rem; line-height:1.7; text-align:center;">
+                    Apakah anda ingin mereset semua stok hari ini..?<br>
+                    <span style="color:#d32f2f; font-weight:600; font-size:0.88rem;">Seluruh jumlah stok akan diubah menjadi 0.</span>
+                </p>
+                <div id="resetStokMsg" style="display:none; margin-top:0.8rem; padding:0.6rem 1rem; border-radius:8px; font-size:0.9rem; text-align:center;"></div>
+            </div>
+            <div class="modal-footer" style="gap:0.6rem;">
+                <button class="btn-modal btn-modal-cancel" onclick="closeResetStokModal()" style="flex:1;">
+                    <i class="fas fa-times"></i> Cancel
+                </button>
+                <button class="btn-modal btn-modal-confirm" onclick="konfirmasiResetStok()" style="flex:1; background:#d32f2f;">
+                    <i class="fas fa-check"></i> Konfirmasi
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Add Location Modal -->
+    <div class="location-modal" id="locationModal">
+        <div class="location-modal-content">
+            <div class="modal-header">
+                <h3>Tambah Lokasi</h3>
+                <button class="modal-close" onclick="closeLocationModal()">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="map-container">
+                    <div id="googleMap" style="width: 100%; height: 250px; border-radius: 8px;"></div>
+                </div>
+                <div class="form-group">
+                    <label for="locationNo">No</label>
+                    <input type="text" id="locationNo" class="form-input" placeholder="Masukkan nomor">
+                </div>
+                <div class="form-group">
+                    <label for="locationName">Nama Tempat</label>
+                    <input type="text" id="locationName" class="form-input" placeholder="Masukkan nama tempat">
+                </div>
+                <div class="form-group">
+                    <label for="locationCoords">Titik Koordinat</label>
+                    <input type="text" id="locationCoords" class="form-input" placeholder="Contoh: -6.2088, 106.8456">
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn-modal btn-modal-cancel" onclick="closeLocationModal()">Cancel</button>
+                <button class="btn-modal btn-modal-confirm" onclick="confirmLocation()">Konfirmasi</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Supabase Configuration
+        const supabaseUrl = 'https://fzrmhmedruvzyvyvgudw.supabase.co';
+        const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZ6cm1obWVkcnV2enl2eXZndWR3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzc3NDkzODUsImV4cCI6MjA5MzMyNTM4NX0.0HNIWfahho-IswD2xUDcsADo6GgtN7DgBJj-SlznXNE';
+        let supabaseClient;
+        try {
+            supabaseClient = window.supabase.createClient(supabaseUrl, supabaseKey);
+        } catch(e) {
+            console.error('Supabase init error:', e);
+        }
+
+        // Load navbar data from Supabase
+        async function loadNavbarData() {
+            if (!supabaseClient) return;
+            try {
+                const { data, error } = await supabaseClient
+                    .from('identitas')
+                    .select('*')
+                    .limit(1);
+                
+                if (error) {
+                    console.error('Load navbar error:', error);
+                    return;
+                }
+                
+                if (data && data.length > 0) {
+                    const row = data[0];
+                    if (row.logo_usaha) document.getElementById('navLogo').src = row.logo_usaha;
+                    if (row.nama_usaha) document.getElementById('navBrand').textContent = row.nama_usaha;
+                    if (row.owner) document.getElementById('navAdminName').textContent = row.owner;
+                    if (row.photo_owner) document.getElementById('navAdminPhoto').src = row.photo_owner;
+                }
+            } catch(e) {
+                console.error('Load navbar error:', e);
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', function() {
+            loadNavbarData();
+        });
+
+        // Toggle Accordion
+        function toggleAccordion(header) {
+            const content = header.nextElementSibling;
+            const isActive = header.classList.contains('active');
+            
+            // Close all accordion items
+            document.querySelectorAll('.accordion-header').forEach(h => {
+                h.classList.remove('active');
+                h.nextElementSibling.classList.remove('active');
+            });
+            
+            // Open clicked item if it wasn't active
+            if (!isActive) {
+                header.classList.add('active');
+                content.classList.add('active');
+                
+                // Check if it's Jam Operasional accordion
+                if (header.querySelector('.fa-clock')) {
+                    // Only generate ID if no data exists
+                    const existingId = document.getElementById('jamOperasionalId').value;
+                    if (!existingId) {
+                        generateJamOperasionalId();
+                    }
+                }
+            }
+        }
+
+        // Show Admin Menu
+        function showAdminMenu() {
+            alert('Menu admin clicked');
+        }
+
+        // Show Add Location Modal
+        async function showAddLocationModal() {
+            document.getElementById('locationModal').classList.add('active');
+            initMap();
+            await loadLocationsFromSupabase();
+        }
+
+        // Show Add Payment Modal
+        async function showAddPaymentModal() {
+            document.getElementById('paymentModal').classList.add('active');
+            
+            // Calculate next number
+            if (!supabaseClient) return;
+            try {
+                const { data, error } = await supabaseClient
+                    .from('akunpembayaran')
+                    .select('no')
+                    .order('no', { ascending: false })
+                    .limit(1);
+                
+                if (error) {
+                    console.error('Load payment count error:', error);
+                    document.getElementById('paymentNo').value = '1';
+                    return;
+                }
+                
+                const nextNo = data && data.length > 0 ? data[0].no + 1 : 1;
+                document.getElementById('paymentNo').value = nextNo;
+            } catch(e) {
+                console.error('Load payment count error:', e);
+                document.getElementById('paymentNo').value = '1';
+            }
+        }
+
+        // Close Payment Modal
+        function closePaymentModal() {
+            document.getElementById('paymentModal').classList.remove('active');
+            // Reset form
+            document.getElementById('paymentNo').value = '';
+            document.getElementById('paymentBank').value = '';
+            document.getElementById('paymentOwner').value = '';
+            document.getElementById('paymentNumber').value = '';
+        }
+
+        // Add Payment Account
+        async function addPaymentAccount() {
+            const no = document.getElementById('paymentNo').value;
+            const bank = document.getElementById('paymentBank').value;
+            const owner = document.getElementById('paymentOwner').value;
+            const number = document.getElementById('paymentNumber').value;
+
+            if (!no || !bank || !owner || !number) {
+                alert('Mohon lengkapi semua data akun pembayaran');
+                return;
+            }
+
+            if (!supabaseClient) {
+                alert('Gagal terhubung ke database');
+                return;
+            }
+
+            try {
+                const { error } = await supabaseClient
+                    .from('akunpembayaran')
+                    .insert([{
+                        no: parseInt(no),
+                        nama_akun: bank,
+                        nama_pemilik: owner,
+                        norek: number
+                    }]);
+                
+                if (error) {
+                    console.error('Save payment account error:', error);
+                    alert('Gagal menyimpan akun pembayaran: ' + error.message);
+                    return;
+                }
+
+                // Reload payment accounts
+                await loadPaymentAccountsFromSupabase();
+                closePaymentModal();
+                alert('Akun pembayaran berhasil ditambahkan!');
+            } catch(e) {
+                console.error('Save payment account error:', e);
+                alert('Gagal menyimpan akun pembayaran');
+            }
+        }
+
+        // Save Operating Hours
+        async function saveOperatingHours() {
+            const id = document.getElementById('jamOperasionalId').value;
+            const jamBuka = document.getElementById('jamBuka').value;
+            const jamTutup = document.getElementById('jamTutup').value;
+
+            if (!id || !jamBuka || !jamTutup) {
+                alert('Mohon lengkapi semua data jam operasional');
+                return;
+            }
+
+            if (!supabaseClient) {
+                alert('Gagal terhubung ke database');
+                return;
+            }
+
+            try {
+                const { error } = await supabaseClient
+                    .from('jamoperasional')
+                    .insert([{
+                        id: id,
+                        buka: jamBuka,
+                        tutup: jamTutup
+                    }]);
+
+                if (error) {
+                    console.error('Save operating hours error:', error);
+                    alert('Gagal menyimpan jam operasional: ' + error.message);
+                    return;
+                }
+
+                alert('Jam operasional berhasil disimpan!');
+                resetOperatingHours();
+                
+                // Disable Simpan button after save
+                const saveBtn = document.querySelector('.btn-save-hours[onclick="saveOperatingHours()"]');
+                if (saveBtn) {
+                    saveBtn.disabled = true;
+                    saveBtn.style.opacity = '0.5';
+                    saveBtn.style.cursor = 'not-allowed';
+                }
+            } catch(e) {
+                console.error('Save operating hours error:', e);
+                alert('Gagal menyimpan jam operasional');
+            }
+        }
+
+        // Generate Jam Operasional ID
+        function generateJamOperasionalId() {
+            const randomCode = Math.floor(10000 + Math.random() * 90000);
+            const id = `TM-${randomCode}`;
+            document.getElementById('jamOperasionalId').value = id;
+        }
+
+        // Update Operating Hours
+        async function updateOperatingHours() {
+            const id = document.getElementById('jamOperasionalId').value;
+            const jamBuka = document.getElementById('jamBuka').value;
+            const jamTutup = document.getElementById('jamTutup').value;
+
+            if (!id || !jamBuka || !jamTutup) {
+                alert('Mohon lengkapi semua data jam operasional');
+                return;
+            }
+
+            if (!supabaseClient) {
+                alert('Gagal terhubung ke database');
+                return;
+            }
+
+            try {
+                const { error } = await supabaseClient
+                    .from('jamoperasional')
+                    .update({
+                        buka: jamBuka,
+                        tutup: jamTutup
+                    })
+                    .eq('id', id);
+
+                if (error) {
+                    console.error('Update operating hours error:', error);
+                    alert('Gagal mengupdate jam operasional: ' + error.message);
+                    return;
+                }
+
+                alert('Jam operasional berhasil diupdate!');
+            } catch(e) {
+                console.error('Update operating hours error:', e);
+                alert('Gagal mengupdate jam operasional');
+            }
+        }
+
+        // Reset Operating Hours
+        async function resetOperatingHours() {
+            const id = document.getElementById('jamOperasionalId').value;
+
+            if (!id) {
+                alert('Tidak ada data untuk dihapus');
+                return;
+            }
+
+            if (!supabaseClient) {
+                alert('Gagal terhubung ke database');
+                return;
+            }
+
+            if (!confirm('Apakah Anda yakin ingin menghapus data jam operasional ini?')) {
+                return;
+            }
+
+            try {
+                const { error } = await supabaseClient
+                    .from('jamoperasional')
+                    .delete()
+                    .eq('id', id);
+
+                if (error) {
+                    console.error('Delete operating hours error:', error);
+                    alert('Gagal menghapus jam operasional: ' + error.message);
+                    return;
+                }
+
+                alert('Jam operasional berhasil dihapus!');
+                
+                // Clear form and generate new ID
+                document.getElementById('jamOperasionalId').value = '';
+                document.getElementById('jamBuka').value = '';
+                document.getElementById('jamTutup').value = '';
+                generateJamOperasionalId();
+                
+                // Enable Simpan button after deletion
+                const saveBtn = document.querySelector('.btn-save-hours[onclick="saveOperatingHours()"]');
+                if (saveBtn) {
+                    saveBtn.disabled = false;
+                    saveBtn.style.opacity = '1';
+                    saveBtn.style.cursor = 'pointer';
+                }
+            } catch(e) {
+                console.error('Delete operating hours error:', e);
+                alert('Gagal menghapus jam operasional');
+            }
+        }
+
+        // Load Operating Hours from Supabase
+        async function loadOperatingHoursFromSupabase() {
+            if (!supabaseClient) return;
+            
+            try {
+                const { data, error } = await supabaseClient
+                    .from('jamoperasional')
+                    .select('*')
+                    .limit(1);
+
+                if (error) {
+                    console.error('Load operating hours error:', error);
+                    return;
+                }
+
+                if (data && data.length > 0) {
+                    const jamOperasional = data[0];
+                    document.getElementById('jamOperasionalId').value = jamOperasional.id;
+                    document.getElementById('jamBuka').value = jamOperasional.buka;
+                    document.getElementById('jamTutup').value = jamOperasional.tutup;
+                    
+                    // Disable Simpan button if data exists
+                    const saveBtn = document.querySelector('.btn-save-hours[onclick="saveOperatingHours()"]');
+                    if (saveBtn) {
+                        saveBtn.disabled = true;
+                        saveBtn.style.opacity = '0.5';
+                        saveBtn.style.cursor = 'not-allowed';
+                    }
+                } else {
+                    // Generate new ID if no data exists
+                    generateJamOperasionalId();
+                    
+                    // Enable Simpan button if no data
+                    const saveBtn = document.querySelector('.btn-save-hours[onclick="saveOperatingHours()"]');
+                    if (saveBtn) {
+                        saveBtn.disabled = false;
+                        saveBtn.style.opacity = '1';
+                        saveBtn.style.cursor = 'pointer';
+                    }
+                }
+            } catch(e) {
+                console.error('Load operating hours error:', e);
+            }
+        }
+
+        // Load payment accounts from Supabase
+        async function loadPaymentAccountsFromSupabase() {
+            if (!supabaseClient) return;
+            try {
+                const { data, error } = await supabaseClient
+                    .from('akunpembayaran')
+                    .select('*')
+                    .order('no', { ascending: true });
+                
+                if (error) {
+                    console.error('Load payment accounts error:', error);
+                    return;
+                }
+                
+                if (data && data.length > 0) {
+                    const tableContainer = document.getElementById('paymentTableContainer');
+                    const tableBody = document.getElementById('paymentTableBody');
+                    
+                    tableContainer.style.display = 'block';
+                    tableBody.innerHTML = '';
+                    
+                    data.forEach(row => {
+                        const tr = document.createElement('tr');
+                        tr.innerHTML = `
+                            <td>${row.no}</td>
+                            <td>${row.nama_akun}</td>
+                            <td>${row.nama_pemilik}</td>
+                            <td>${row.norek}</td>
+                            <td>
+                                <button class="btn-delete" onclick="deletePaymentAccount(${row.no})">Hapus</button>
+                            </td>
+                        `;
+                        tableBody.appendChild(tr);
+                    });
+                }
+            } catch(e) {
+                console.error('Load payment accounts error:', e);
+            }
+        }
+
+        // Delete payment account
+        async function deletePaymentAccount(no) {
+            if (!confirm('Apakah Anda yakin ingin menghapus akun pembayaran ini?')) {
+                return;
+            }
+            
+            if (!supabaseClient) {
+                alert('Gagal terhubung ke database');
+                return;
+            }
+            
+            try {
+                const { error } = await supabaseClient
+                    .from('akunpembayaran')
+                    .delete()
+                    .eq('no', no);
+                
+                if (error) {
+                    console.error('Delete payment account error:', error);
+                    alert('Gagal menghapus akun pembayaran');
+                    return;
+                }
+                
+                await loadPaymentAccountsFromSupabase();
+                alert('Akun pembayaran berhasil dihapus');
+            } catch(e) {
+                console.error('Delete payment account error:', e);
+                alert('Gagal menghapus akun pembayaran');
+            }
+        }
+
+        // Load locations from Supabase
+        async function loadLocationsFromSupabase() {
+            if (!supabaseClient) return;
+            try {
+                const { data, error } = await supabaseClient
+                    .from('lokasi')
+                    .select('no, nama_tempat, koordinat')
+                    .order('no', { ascending: true });
+                
+                if (error) {
+                    console.error('Load locations error:', error);
+                    return;
+                }
+                
+                // Calculate next number
+                const nextNo = data ? data.length + 1 : 1;
+                document.getElementById('locationNo').value = nextNo;
+                
+                // Populate dropdown
+                const select = document.getElementById('locationSelect');
+                select.innerHTML = '<option value="">-- Pilih Lokasi --</option>';
+                
+                if (data && data.length > 0) {
+                    data.forEach(row => {
+                        const option = document.createElement('option');
+                        option.value = row.koordinat;
+                        option.textContent = row.nama_tempat;
+                        option.dataset.nama = row.nama_tempat;
+                        select.appendChild(option);
+                    });
+                }
+            } catch(e) {
+                console.error('Load locations error:', e);
+            }
+        }
+
+        // Load current location from lokasisekarang
+        async function loadCurrentLocationFromSupabase() {
+            if (!supabaseClient) return;
+            try {
+                const { data, error } = await supabaseClient
+                    .from('lokasisekarang')
+                    .select('nama_lokasi, koordinat')
+                    .limit(1);
+                
+                if (error) {
+                    console.error('Load current location error:', error);
+                    return;
+                }
+                
+                if (data && data.length > 0) {
+                    const location = data[0];
+                    document.getElementById('selectedLocationName').textContent = location.nama_lokasi;
+                    document.getElementById('selectedCoords').textContent = location.koordinat;
+                    document.getElementById('selectedLocationDisplay').style.display = 'block';
+                    
+                    // Initialize map with current location
+                    setTimeout(() => {
+                        displaySelectedLocation(location.koordinat);
+                    }, 500);
+                }
+            } catch(e) {
+                console.error('Load current location error:', e);
+            }
+        }
+
+        // Handle location select
+        async function onLocationSelect() {
+            const select = document.getElementById('locationSelect');
+            const selectedOption = select.options[select.selectedIndex];
+            
+            if (!selectedOption || !selectedOption.value) {
+                document.getElementById('selectedLocationDisplay').style.display = 'none';
+                return;
+            }
+
+            const namaLokasi = selectedOption.dataset.nama;
+            const koordinat = selectedOption.value;
+
+            if (!supabaseClient) {
+                console.error('Supabase client not initialized');
+                return;
+            }
+
+            try {
+                // Save to lokasisekarang table
+                const { data: existingData } = await supabaseClient
+                    .from('lokasisekarang')
+                    .select('no')
+                    .limit(1);
+
+                const nextNo = existingData && existingData.length > 0 ? existingData.length + 1 : 1;
+
+                // Delete existing record if any
+                await supabaseClient
+                    .from('lokasisekarang')
+                    .delete()
+                    .neq('no', 0); // Delete all records
+
+                // Insert new record
+                const { error } = await supabaseClient
+                    .from('lokasisekarang')
+                    .insert([{
+                        no: nextNo,
+                        nama_lokasi: namaLokasi,
+                        koordinat: koordinat
+                    }]);
+
+                if (error) {
+                    console.error('Save lokasisekarang error:', error);
+                    return;
+                }
+
+                // Display map and coordinates
+                displaySelectedLocation(koordinat);
+            } catch(e) {
+                console.error('Location select error:', e);
+            }
+        }
+
+        // Display selected location on map
+        let selectedLocationMap;
+        let selectedLocationMarker;
+
+        function displaySelectedLocation(koordinat) {
+            const coords = koordinat.split(',').map(c => parseFloat(c.trim()));
+            if (coords.length !== 2 || isNaN(coords[0]) || isNaN(coords[1])) {
+                console.error('Invalid coordinates format');
+                return;
+            }
+
+            const [lat, lng] = coords;
+
+            // Show display
+            document.getElementById('selectedLocationDisplay').style.display = 'block';
+            document.getElementById('selectedCoords').textContent = koordinat;
+
+            // Initialize map if not already
+            if (!selectedLocationMap) {
+                selectedLocationMap = L.map('selectedLocationMap').setView([lat, lng], 15);
+                L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                    attribution: '© OpenStreetMap contributors'
+                }).addTo(selectedLocationMap);
+            }
+
+            // Remove existing marker
+            if (selectedLocationMarker) {
+                selectedLocationMap.removeLayer(selectedLocationMarker);
+            }
+
+            // Add marker and fly to location
+            selectedLocationMap.flyTo([lat, lng], 15);
+            selectedLocationMarker = L.marker([lat, lng]).addTo(selectedLocationMap)
+                .bindPopup('Lokasi Terpilih')
+                .openPopup();
+        }
+
+        // Close Location Modal
+        function closeLocationModal() {
+            document.getElementById('locationModal').classList.remove('active');
+            // Reset form
+            document.getElementById('locationNo').value = '';
+            document.getElementById('locationName').value = '';
+            document.getElementById('locationCoords').value = '';
+        }
+
+        // Initialize Map using Leaflet
+        let map;
+        let marker;
+
+        function initMap() {
+            if (typeof L === 'undefined') {
+                console.error('Leaflet not loaded');
+                return;
+            }
+
+            // Default location (Jakarta)
+            const defaultLocation = [-6.2088, 106.8456];
+
+            map = L.map('googleMap').setView(defaultLocation, 13);
+
+            // Add OpenStreetMap tile layer
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                attribution: '© OpenStreetMap contributors'
+            }).addTo(map);
+
+            // Add click listener
+            map.on('click', function(event) {
+                const lat = event.latlng.lat;
+                const lng = event.latlng.lng;
+                
+                // Update input field
+                document.getElementById('locationCoords').value = `${lat.toFixed(6)}, ${lng.toFixed(6)}`;
+                
+                // Remove existing marker
+                if (marker) {
+                    map.removeLayer(marker);
+                }
+                
+                // Add new marker
+                marker = L.marker([lat, lng]).addTo(map)
+                    .bindPopup('Lokasi Terpilih')
+                    .openPopup();
+            });
+        }
+
+        // Confirm Location
+        async function confirmLocation() {
+            const no = document.getElementById('locationNo').value;
+            const nama = document.getElementById('locationName').value;
+            const coords = document.getElementById('locationCoords').value;
+
+            if (!no || !nama || !coords) {
+                alert('Mohon lengkapi semua data lokasi');
+                return;
+            }
+
+            if (!supabaseClient) {
+                alert('Gagal terhubung ke database');
+                return;
+            }
+
+            try {
+                const { error } = await supabaseClient
+                    .from('lokasi')
+                    .insert([{
+                        no: parseInt(no),
+                        nama_tempat: nama,
+                        koordinat: coords
+                    }]);
+                
+                if (error) {
+                    console.error('Save location error:', error);
+                    alert('Gagal menyimpan lokasi: ' + error.message);
+                    return;
+                }
+
+                // Reload locations
+                await loadLocationsFromSupabase();
+                closeLocationModal();
+                alert('Lokasi berhasil ditambahkan!');
+            } catch(e) {
+                console.error('Save location error:', e);
+                alert('Gagal menyimpan lokasi');
+            }
+        }
+
+        // Calendar functionality
+        let currentDate = new Date();
+        const holidays = {}; // Object untuk menyimpan tanggal libur
+
+        // Load holidays from Supabase
+        async function loadHolidaysFromSupabase() {
+            if (!supabaseClient) return;
+            try {
+                const { data, error } = await supabaseClient
+                    .from('libur')
+                    .select('*');
+                
+                if (error) {
+                    console.error('Load holidays error:', error);
+                    return;
+                }
+                
+                if (data) {
+                    data.forEach(row => {
+                        holidays[row.tanggal] = row.status;
+                    });
+                    renderCalendar();
+                    updateHolidayTable();
+                }
+            } catch(e) {
+                console.error('Load holidays error:', e);
+            }
+        }
+
+        // Save holiday to Supabase
+        async function saveHolidayToSupabase(tanggal, status) {
+            if (!supabaseClient) return;
+            try {
+                const { error } = await supabaseClient
+                    .from('libur')
+                    .insert([{ tanggal: tanggal, status: status }]);
+                
+                if (error) {
+                    console.error('Save holiday error:', error);
+                    return false;
+                }
+                return true;
+            } catch(e) {
+                console.error('Save holiday error:', e);
+                return false;
+            }
+        }
+
+        // Delete holiday from Supabase
+        async function deleteHolidayFromSupabase(tanggal) {
+            if (!supabaseClient) return;
+            try {
+                const { error } = await supabaseClient
+                    .from('libur')
+                    .delete()
+                    .eq('tanggal', tanggal);
+                
+                if (error) {
+                    console.error('Delete holiday error:', error);
+                    return false;
+                }
+                return true;
+            } catch(e) {
+                console.error('Delete holiday error:', e);
+                return false;
+            }
+        }
+
+        function renderCalendar() {
+            const year = currentDate.getFullYear();
+            const month = currentDate.getMonth();
+
+            const monthNames = ['Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni', 
+                               'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'];
+            document.getElementById('calendarMonthYear').textContent = `${monthNames[month]} ${year}`;
+
+            const firstDay = new Date(year, month, 1).getDay();
+            const daysInMonth = new Date(year, month + 1, 0).getDate();
+
+            const calendarDays = document.getElementById('calendarDays');
+            calendarDays.innerHTML = '';
+
+            // Empty cells for days before the first day of month
+            for (let i = 0; i < firstDay; i++) {
+                const emptyDay = document.createElement('div');
+                emptyDay.className = 'calendar-day empty';
+                calendarDays.appendChild(emptyDay);
+            }
+
+            // Days of the month
+            const today = new Date();
+            for (let day = 1; day <= daysInMonth; day++) {
+                const dayElement = document.createElement('div');
+                dayElement.className = 'calendar-day';
+                dayElement.textContent = day;
+
+                const dateStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+
+                // Check if today
+                if (day === today.getDate() && month === today.getMonth() && year === today.getFullYear()) {
+                    dayElement.classList.add('today');
+                }
+
+                // Check if holiday
+                if (holidays[dateStr]) {
+                    dayElement.classList.add('holiday');
+                }
+
+                // Toggle holiday on click
+                dayElement.onclick = async function() {
+                    if (!this.classList.contains('empty')) {
+                        if (holidays[dateStr]) {
+                            // Delete from Supabase
+                            const success = await deleteHolidayFromSupabase(dateStr);
+                            if (success) {
+                                delete holidays[dateStr];
+                                this.classList.remove('holiday');
+                                updateHolidayTable();
+                            }
+                        } else {
+                            // Save to Supabase
+                            const success = await saveHolidayToSupabase(dateStr, 'Tutup');
+                            if (success) {
+                                holidays[dateStr] = 'Tutup';
+                                this.classList.add('holiday');
+                                updateHolidayTable();
+                            }
+                        }
+                    }
+                };
+
+                calendarDays.appendChild(dayElement);
+            }
+        }
+
+        function changeMonth(delta) {
+            currentDate.setMonth(currentDate.getMonth() + delta);
+            renderCalendar();
+        }
+
+        async function updateHolidayTable() {
+            if (!supabaseClient) return;
+            const tableContainer = document.getElementById('holidayTableContainer');
+            const tableBody = document.getElementById('holidayTableBody');
+            
+            try {
+                const { data, error } = await supabaseClient
+                    .from('libur')
+                    .select('no, tanggal, status')
+                    .order('no', { ascending: true });
+                
+                if (error) {
+                    console.error('Load table error:', error);
+                    return;
+                }
+                
+                if (data && data.length > 0) {
+                    tableContainer.style.display = 'block';
+                    tableBody.innerHTML = '';
+                    
+                    data.forEach(row => {
+                        const date = new Date(row.tanggal);
+                        const options = { weekday: 'short', day: 'numeric', month: 'short', year: 'numeric' };
+                        const formattedDate = date.toLocaleDateString('id-ID', options);
+                        
+                        const statusColor = row.status === 'Tutup' ? '#e57373' : '#4caf50';
+                        
+                        const tr = document.createElement('tr');
+                        tr.innerHTML = `
+                            <td>${row.no}</td>
+                            <td>${formattedDate}</td>
+                            <td><span style="color: ${statusColor}; font-weight: 600;">${row.status}</span></td>
+                        `;
+                        tableBody.appendChild(tr);
+                    });
+                } else {
+                    tableContainer.style.display = 'none';
+                }
+            } catch(e) {
+                console.error('Update table error:', e);
+            }
+        }
+
+        // ===== STOCK MANAGEMENT (Stok Hari Ini) =====
+        
+        // Load Stock Data from stokhariini table
+        async function loadStockData() {
+            if (!supabaseClient) return;
+            try {
+                const { data, error } = await supabaseClient
+                    .from('stokhariini')
+                    .select('*')
+                    .order('nama_produk', { ascending: true });
+
+                if (error) {
+                    console.error('Load stock error:', error);
+                    return;
+                }
+
+                const tableBody = document.getElementById('stockTableBody');
+                const emptyState = document.getElementById('stockEmptyState');
+
+                // Check if elements exist
+                if (!tableBody || !emptyState) {
+                    console.error('Stock table elements not found');
+                    return;
+                }
+
+                // Get the parent div of the table (the div with overflow-x: auto)
+                const tableWrapper = tableBody.closest('div[style*="overflow-x"]');
+
+                if (data && data.length > 0) {
+                    if (tableWrapper) tableWrapper.style.display = 'block';
+                    emptyState.style.display = 'none';
+                    tableBody.innerHTML = '';
+
+                    data.forEach((row, index) => {
+                        const tr = document.createElement('tr');
+                        
+                        // Handle photo display
+                        let photoDisplay = '-';
+                        if (row.photo) {
+                            photoDisplay = `<img src="${row.photo}" alt="${row.nama_produk}" style="width: 50px; height: 50px; object-fit: cover; border-radius: 8px;">`;
+                        }
+                        
+                        // Handle stock display with color coding - using jumlahstok column
+                        // If null or undefined, treat as 0
+                        const stockCount = (row.jumlahstok === null || row.jumlahstok === undefined) ? 0 : parseInt(row.jumlahstok) || 0;
+                        const stockColor = stockCount < 5 ? '#e74c3c' : '#2e7d32';
+                        
+                        // Truncate deskripsi to 10 words
+                        const deskripsiRaw = row.deskripsi || '-';
+                        const deskripsiWords = deskripsiRaw.split(' ');
+                        const deskripsiDisplay = deskripsiWords.length > 10
+                            ? deskripsiWords.slice(0, 10).join(' ') + '......'
+                            : deskripsiRaw;
+
+                        const escapedId = (row.id || '').replace(/'/g, "\\'");
+                        const escapedNama = (row.nama_produk || '').replace(/'/g, "\\'");
+                        tr.innerHTML = `
+                            <td>${index + 1}</td>
+                            <td><strong>${row.id || '-'}</strong></td>
+                            <td><span style="background: #f5f5f5; padding: 4px 10px; border-radius: 12px; font-size: 0.85rem;">${row.kategori || '-'}</span></td>
+                            <td><strong>${row.nama_produk || '-'}</strong></td>
+                            <td style="min-width:160px; max-width:180px; font-size: 0.85rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${deskripsiDisplay}</td>
+                            <td style="font-weight: 600; color: #6f4e37;">Rp ${row.harga || '0'}</td>
+                            <td style="text-align: center;">${photoDisplay}</td>
+                            <td style="text-align: center; font-weight: 700; font-size: 1.1rem; color: ${stockColor};">${stockCount}</td>
+                            <td style="text-align: center;">
+                                <button onclick="showUpdateStokModal('${escapedId}', '${escapedNama}', ${stockCount})"
+                                    style="background:#6f4e37; color:white; border:none; padding:6px 14px; border-radius:8px; cursor:pointer; font-size:0.82rem; font-weight:600; display:inline-flex; align-items:center; gap:6px; transition:background 0.2s;"
+                                    onmouseover="this.style.background='#5a3d2d'" onmouseout="this.style.background='#6f4e37'">
+                                    <i class="fas fa-edit"></i> Update Stok
+                                </button>
+                            </td>
+                        `;
+                        tableBody.appendChild(tr);
+                    });
+                } else {
+                    if (tableWrapper) tableWrapper.style.display = 'none';
+                    emptyState.style.display = 'block';
+                }
+            } catch(e) {
+                console.error('Load stock error:', e);
+            }
+        }
+
+        // ===== UPDATE STOK MODAL =====
+
+        function showUpdateStokModal(id, nama, jumlahstok) {
+            document.getElementById('updateStokId').value = id;
+            document.getElementById('updateStokNama').value = nama;
+            document.getElementById('updateStokJumlah').value = jumlahstok;
+            const msg = document.getElementById('updateStokMsg');
+            msg.style.display = 'none';
+            msg.textContent = '';
+            document.getElementById('updateStokModal').classList.add('active');
+        }
+
+        function closeUpdateStokModal() {
+            document.getElementById('updateStokModal').classList.remove('active');
+        }
+
+        async function saveUpdateStok() {
+            const id = document.getElementById('updateStokId').value;
+            const jumlahRaw = document.getElementById('updateStokJumlah').value;
+            const jumlah = jumlahRaw === '' ? 0 : parseInt(jumlahRaw);
+            const msg = document.getElementById('updateStokMsg');
+
+            if (isNaN(jumlah) || jumlah < 0) {
+                msg.style.display = 'block';
+                msg.style.background = '#fdecea';
+                msg.style.color = '#c62828';
+                msg.textContent = 'Jumlah stok tidak valid. Masukkan angka ≥ 0.';
+                return;
+            }
+
+            if (!supabaseClient) return;
+
+            try {
+                const { error } = await supabaseClient
+                    .from('stokhariini')
+                    .update({ jumlahstok: jumlah })
+                    .eq('id', id);
+
+                if (error) {
+                    msg.style.display = 'block';
+                    msg.style.background = '#fdecea';
+                    msg.style.color = '#c62828';
+                    msg.textContent = 'Gagal update: ' + error.message;
+                    return;
+                }
+
+                msg.style.display = 'block';
+                msg.style.background = '#e8f5e9';
+                msg.style.color = '#2e7d32';
+                msg.textContent = '✓ Stok berhasil diperbarui!';
+
+                // Refresh tabel setelah 1 detik lalu tutup modal
+                setTimeout(async () => {
+                    closeUpdateStokModal();
+                    await loadStockData();
+                }, 1000);
+
+            } catch(e) {
+                msg.style.display = 'block';
+                msg.style.background = '#fdecea';
+                msg.style.color = '#c62828';
+                msg.textContent = 'Error: ' + e.message;
+            }
+        }
+
+        // ===== RESET STOK =====
+
+        function showResetStokModal() {
+            const msg = document.getElementById('resetStokMsg');
+            msg.style.display = 'none';
+            msg.textContent = '';
+            document.getElementById('resetStokModal').classList.add('active');
+        }
+
+        function closeResetStokModal() {
+            document.getElementById('resetStokModal').classList.remove('active');
+        }
+
+        async function konfirmasiResetStok() {
+            const msg = document.getElementById('resetStokMsg');
+            const confirmBtn = document.querySelector('#resetStokModal .btn-modal-confirm');
+
+            if (!supabaseClient) return;
+
+            // Disable tombol saat proses berjalan
+            confirmBtn.disabled = true;
+            confirmBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Memproses...';
+
+            try {
+                const { error } = await supabaseClient
+                    .from('stokhariini')
+                    .update({ jumlahstok: 0 })
+                    .neq('id', ''); // update semua baris
+
+                if (error) {
+                    msg.style.display = 'block';
+                    msg.style.background = '#fdecea';
+                    msg.style.color = '#c62828';
+                    msg.textContent = 'Gagal reset stok: ' + error.message;
+                    confirmBtn.disabled = false;
+                    confirmBtn.innerHTML = '<i class="fas fa-check"></i> Konfirmasi';
+                    return;
+                }
+
+                msg.style.display = 'block';
+                msg.style.background = '#e8f5e9';
+                msg.style.color = '#2e7d32';
+                msg.textContent = '✓ Semua stok berhasil direset ke 0!';
+
+                setTimeout(async () => {
+                    closeResetStokModal();
+                    confirmBtn.disabled = false;
+                    confirmBtn.innerHTML = '<i class="fas fa-check"></i> Konfirmasi';
+                    await loadStockData();
+                }, 1200);
+
+            } catch(e) {
+                msg.style.display = 'block';
+                msg.style.background = '#fdecea';
+                msg.style.color = '#c62828';
+                msg.textContent = 'Error: ' + e.message;
+                confirmBtn.disabled = false;
+                confirmBtn.innerHTML = '<i class="fas fa-check"></i> Konfirmasi';
+            }
+        }
+
+        // Initialize calendar on load
+        document.addEventListener('DOMContentLoaded', function() {
+            loadNavbarData();
+            renderCalendar();
+            loadHolidaysFromSupabase();
+            loadLocationsFromSupabase();
+            loadCurrentLocationFromSupabase();
+            loadPaymentAccountsFromSupabase();
+            loadOperatingHoursFromSupabase();
+            loadStockData();
+        });
+    </script>
+</body>
+</html>

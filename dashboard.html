@@ -1,0 +1,1841 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard - Nerai Coffee</title>
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;1,9..40,400&family=Playfair+Display:wght@600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+    <style>
+        :root {
+            --brown-dark: #3d2314;
+            --brown-main: #6f4e37;
+            --brown-mid: #8b6348;
+            --brown-light: #c49a78;
+            --brown-pale: #f0e6d6;
+            --cream: #faf6f1;
+            --white: #ffffff;
+            --text-dark: #1a1009;
+            --text-mid: #5c3d24;
+            --text-soft: #8a7060;
+            --green: #2d6a4f;
+            --green-light: #e8f5ef;
+            --red: #c0392b;
+            --red-light: #fdf0ee;
+            --blue: #1a6fa8;
+            --blue-light: #e8f2f9;
+            --orange: #c05c1a;
+            --orange-light: #fdf3e8;
+            --gold: #d4a843;
+            --shadow-sm: 0 2px 8px rgba(61,35,20,0.08);
+            --shadow-md: 0 4px 20px rgba(61,35,20,0.12);
+            --shadow-lg: 0 12px 40px rgba(61,35,20,0.18);
+            --radius-sm: 10px;
+            --radius-md: 16px;
+            --radius-lg: 24px;
+            --transition: 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: 'DM Sans', sans-serif;
+            background: var(--cream);
+            min-height: 100vh;
+            color: var(--text-dark);
+            overflow-x: hidden;
+        }
+
+        /* ─── NAVBAR ─────────────────────────────── */
+        .dashboard-navbar {
+            background: var(--brown-dark);
+            padding: 0 10px;
+            height: 64px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            box-shadow: 0 2px 16px rgba(0,0,0,0.25);
+        }
+
+        .navbar-left {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .navbar-logo {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            object-fit: contain;
+            background: var(--brown-pale);
+            padding: 3px;
+            border: 2px solid var(--brown-light);
+        }
+
+        .navbar-brand {
+            color: var(--white);
+            font-family: 'Playfair Display', serif;
+            font-size: 1.25rem;
+            font-weight: 700;
+            letter-spacing: 0.3px;
+        }
+
+        .navbar-right {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .admin-info {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            cursor: pointer;
+            padding: 6px 14px 6px 8px;
+            border-radius: 50px;
+            transition: background var(--transition);
+        }
+
+        .admin-info:hover {
+            background: rgba(255,255,255,0.1);
+        }
+
+        .admin-name {
+            color: rgba(255,255,255,0.85);
+            font-size: 0.875rem;
+            font-weight: 500;
+        }
+
+        .admin-photo {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 2px solid var(--brown-light);
+        }
+
+        /* ─── MAIN CONTAINER ─────────────────────── */
+        .dashboard-container {
+            padding: 1.75rem 10px 3rem;
+        }
+
+        /* ─── HEADER ─────────────────────────────── */
+        .dashboard-header {
+            margin-bottom: 1.75rem;
+            display: flex;
+            align-items: flex-end;
+            justify-content: space-between;
+            gap: 1rem;
+        }
+
+        .header-text h1 {
+            font-family: 'Playfair Display', serif;
+            font-size: 2rem;
+            font-weight: 700;
+            color: var(--text-dark);
+            line-height: 1.2;
+        }
+
+        .header-text p {
+            color: var(--text-soft);
+            font-size: 0.9rem;
+            margin-top: 4px;
+        }
+
+        .header-date {
+            text-align: right;
+            color: var(--text-soft);
+            font-size: 0.8rem;
+            line-height: 1.5;
+            flex-shrink: 0;
+        }
+
+        .header-date strong {
+            display: block;
+            color: var(--text-mid);
+            font-size: 0.875rem;
+        }
+
+        /* ─── SECTION LABEL ──────────────────────── */
+        .section-label {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 1.2px;
+            color: var(--brown-mid);
+            margin-bottom: 0.9rem;
+        }
+
+        .section-label::after {
+            content: '';
+            flex: 1;
+            height: 1px;
+            background: linear-gradient(to right, var(--brown-pale), transparent);
+        }
+
+        /* ─── ACCORDION MENU ─────────────────────── */
+        .menu-accordion {
+            background: var(--white);
+            border-radius: var(--radius-md);
+            box-shadow: var(--shadow-sm);
+            margin-bottom: 1.5rem;
+            overflow: hidden;
+            border: 1px solid var(--brown-pale);
+        }
+
+        .accordion-header {
+            background: linear-gradient(135deg, var(--brown-dark) 0%, var(--brown-main) 100%);
+            padding: 1rem 1.5rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            cursor: pointer;
+            transition: filter var(--transition);
+            user-select: none;
+        }
+
+        .accordion-header:hover { filter: brightness(1.1); }
+
+        .accordion-header-left {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .accordion-header-left i {
+            color: var(--brown-light);
+            font-size: 0.95rem;
+        }
+
+        .accordion-header h3 {
+            color: white;
+            font-size: 1rem;
+            font-weight: 600;
+            margin: 0;
+        }
+
+        .accordion-header .chevron {
+            color: var(--brown-light);
+            font-size: 0.9rem;
+            transition: transform var(--transition);
+        }
+
+        .accordion-header.active .chevron {
+            transform: rotate(180deg);
+        }
+
+        .accordion-content {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .accordion-content.active { max-height: 600px; }
+
+        .menu-buttons {
+            padding: 1.25rem 1.5rem;
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(90px, 1fr));
+            gap: 0.75rem;
+        }
+
+        .menu-btn {
+            border-radius: var(--radius-sm);
+            background: var(--cream);
+            border: 1.5px solid var(--brown-pale);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 7px;
+            cursor: pointer;
+            transition: all var(--transition);
+            padding: 0.9rem 0.5rem;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .menu-btn::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(135deg, var(--brown-main), var(--brown-dark));
+            opacity: 0;
+            transition: opacity var(--transition);
+        }
+
+        .menu-btn:hover::before { opacity: 1; }
+        .menu-btn:hover { transform: translateY(-3px); box-shadow: var(--shadow-md); border-color: var(--brown-main); }
+        .menu-btn:hover i, .menu-btn:hover span { color: white; }
+
+        .menu-btn i {
+            font-size: 1.4rem;
+            color: var(--brown-main);
+            transition: color var(--transition);
+            position: relative;
+            z-index: 1;
+        }
+
+        .menu-btn span {
+            font-size: 0.7rem;
+            color: var(--text-mid);
+            font-weight: 600;
+            text-align: center;
+            line-height: 1.3;
+            transition: color var(--transition);
+            position: relative;
+            z-index: 1;
+        }
+
+        .menu-btn.logout-btn {
+            background: var(--red);
+            border-color: var(--red);
+        }
+
+        .menu-btn.logout-btn i { color: white; }
+        .menu-btn.logout-btn span { color: white; }
+
+        /* ─── NERACA GRID (3 kontainer) ─────────── */
+        .neraca-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 0.85rem;
+            margin-bottom: 0;
+        }
+
+        .neraca-card {
+            background: var(--white);
+            border-radius: var(--radius-md);
+            box-shadow: var(--shadow-sm);
+            border: 1.5px solid var(--brown-pale);
+            overflow: hidden;
+            transition: all var(--transition);
+        }
+
+        .neraca-card:hover {
+            border-color: var(--brown-light);
+            box-shadow: var(--shadow-md);
+            transform: translateY(-3px);
+        }
+
+        .neraca-card-header {
+            padding: 0.9rem 1.1rem 0.75rem;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            border-bottom: 1.5px solid var(--brown-pale);
+            position: relative;
+        }
+
+        .neraca-card-header::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; right: 0;
+            height: 3px;
+            border-radius: var(--radius-md) var(--radius-md) 0 0;
+        }
+
+        .neraca-card.pemasukan .neraca-card-header::before { background: linear-gradient(90deg, var(--green), #52b788); }
+        .neraca-card.pengeluaran .neraca-card-header::before { background: linear-gradient(90deg, var(--red), #e05c4e); }
+        .neraca-card.balance .neraca-card-header::before { background: linear-gradient(90deg, var(--gold), #e8c15a); }
+
+        .neraca-header-left {
+            display: flex;
+            align-items: center;
+            gap: 9px;
+        }
+
+        .neraca-icon {
+            width: 36px; height: 36px;
+            border-radius: 10px;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 0.9rem;
+            flex-shrink: 0;
+        }
+
+        .neraca-card.pemasukan .neraca-icon { background: var(--green-light); color: var(--green); }
+        .neraca-card.pengeluaran .neraca-icon { background: var(--red-light); color: var(--red); }
+        .neraca-card.balance .neraca-icon { background: #fef9ec; color: var(--gold); }
+
+        .neraca-header-title {
+            font-family: 'Playfair Display', serif;
+            font-size: 0.88rem;
+            font-weight: 700;
+            color: var(--text-dark);
+        }
+
+        .neraca-link {
+            font-size: 0.68rem;
+            font-weight: 600;
+            color: var(--brown-light);
+            text-decoration: none;
+            padding: 3px 8px;
+            border: 1px solid var(--brown-pale);
+            border-radius: 20px;
+            transition: all var(--transition);
+            white-space: nowrap;
+        }
+
+        .neraca-link:hover { color: var(--brown-main); border-color: var(--brown-light); background: var(--brown-pale); }
+
+        .neraca-card-body {
+            padding: 0.9rem 1.1rem 1rem;
+            display: flex;
+            flex-direction: column;
+            gap: 0.65rem;
+        }
+
+        /* Mini preview cards inside neraca */
+        .preview-card {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            padding: 0.7rem 0.85rem;
+            border-radius: var(--radius-sm);
+            border: 1.5px solid var(--brown-pale);
+            background: var(--cream);
+            transition: all var(--transition);
+            cursor: default;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .preview-card::after {
+            content: '';
+            position: absolute;
+            left: 0; top: 0; bottom: 0;
+            width: 3px;
+        }
+
+        .preview-card.take-away::after { background: var(--blue); }
+        .preview-card.onsite::after    { background: var(--green); }
+        .preview-card.total-all::after { background: var(--gold); }
+
+        .preview-card:hover { border-color: var(--brown-light); background: var(--white); }
+
+        .preview-card-icon {
+            width: 34px; height: 34px;
+            border-radius: 9px;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 0.85rem;
+            flex-shrink: 0;
+        }
+
+        .preview-card.take-away .preview-card-icon { background: var(--blue-light); color: var(--blue); }
+        .preview-card.onsite    .preview-card-icon { background: var(--green-light); color: var(--green); }
+        .preview-card.total-all .preview-card-icon { background: #fef9ec; color: var(--gold); }
+
+        .preview-card-info { flex: 1; min-width: 0; }
+
+        .preview-card-label {
+            font-size: 0.68rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.07em;
+            color: var(--text-soft);
+            margin-bottom: 1px;
+        }
+
+        .preview-card-value {
+            font-size: 1rem;
+            font-weight: 700;
+            color: var(--text-dark);
+            line-height: 1.2;
+        }
+
+        .preview-card.take-away .preview-card-value { color: var(--blue); }
+        .preview-card.onsite    .preview-card-value { color: var(--green); }
+        .preview-card.total-all .preview-card-value { color: var(--gold); }
+
+        .preview-card-count {
+            font-size: 0.65rem;
+            color: var(--text-soft);
+            font-weight: 500;
+            margin-top: 2px;
+        }
+
+        /* Loading skeleton pulse */
+        .skeleton {
+            background: linear-gradient(90deg, var(--brown-pale) 25%, #f8f1e8 50%, var(--brown-pale) 75%);
+            background-size: 200% 100%;
+            animation: shimmer 1.4s infinite;
+            border-radius: 6px;
+            display: inline-block;
+        }
+
+        @keyframes shimmer {
+            0%   { background-position: 200% 0; }
+            100% { background-position: -200% 0; }
+        }
+
+        /* Placeholder cards (Pengeluaran, Balance) */
+        .neraca-placeholder {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+            padding: 1.5rem;
+            text-align: center;
+            color: var(--text-soft);
+            min-height: 130px;
+        }
+
+        .neraca-placeholder i {
+            font-size: 1.6rem;
+            opacity: 0.25;
+            margin-bottom: 4px;
+        }
+
+        .neraca-placeholder p {
+            font-size: 0.78rem;
+            font-weight: 500;
+            opacity: 0.5;
+        }
+
+        /* ─── STATS SECTION (lama, disimpan untuk stat cards kecil) ── */
+        .stats-wrapper {
+            margin-bottom: 1.5rem;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 0.85rem;
+        }
+
+        .stat-card {
+            background: var(--white);
+            border-radius: var(--radius-md);
+            padding: 1.1rem 1.2rem;
+            display: flex;
+            align-items: center;
+            gap: 0.9rem;
+            box-shadow: var(--shadow-sm);
+            border: 1.5px solid transparent;
+            transition: all var(--transition);
+            cursor: pointer;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .stat-card::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; right: 0;
+            height: 3px;
+        }
+
+        .stat-card.revenue::before { background: linear-gradient(90deg, var(--green), #52b788); }
+        .stat-card.orders::before { background: linear-gradient(90deg, var(--blue), #3a9dd6); }
+        .stat-card.expense::before { background: linear-gradient(90deg, var(--orange), #e88e50); }
+        .stat-card.balance::before { background: linear-gradient(90deg, var(--gold), #e8c15a); }
+
+        .stat-card:hover {
+            border-color: var(--brown-light);
+            transform: translateY(-4px);
+            box-shadow: var(--shadow-lg);
+        }
+
+        .stat-card.revenue { grid-row: span 3; flex-direction: column; align-items: flex-start; }
+
+        .stat-icon {
+            width: 44px;
+            height: 44px;
+            border-radius: var(--radius-sm);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.1rem;
+            flex-shrink: 0;
+        }
+
+        .stat-card.revenue .stat-icon { background: var(--green-light); color: var(--green); width: 48px; height: 48px; font-size: 1.2rem; }
+        .stat-card.orders .stat-icon { background: var(--blue-light); color: var(--blue); }
+        .stat-card.expense .stat-icon { background: var(--orange-light); color: var(--orange); }
+        .stat-card.balance .stat-icon { background: #fef9ec; color: var(--gold); }
+
+        .stat-content { flex: 1; min-width: 0; }
+
+        .stat-content h3 {
+            font-size: 1.35rem;
+            font-weight: 700;
+            color: var(--text-dark);
+            line-height: 1.1;
+            margin-bottom: 2px;
+        }
+
+        .stat-card.revenue .stat-content h3 { font-size: 1.6rem; }
+
+        .stat-content p {
+            color: var(--text-soft);
+            font-size: 0.78rem;
+            font-weight: 500;
+        }
+
+        .stat-card.revenue .stat-top {
+            display: flex;
+            align-items: center;
+            gap: 0.9rem;
+            width: 100%;
+            padding-bottom: 0.9rem;
+            border-bottom: 1px solid var(--brown-pale);
+        }
+
+        .revenue-breakdown {
+            width: 100%;
+            padding-top: 0.75rem;
+            display: flex;
+            flex-direction: column;
+            gap: 0.45rem;
+        }
+
+        .breakdown-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .breakdown-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 0.8rem;
+            padding: 4px 0;
+            color: var(--text-mid);
+        }
+
+        .breakdown-label {
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .breakdown-label .dot {
+            width: 8px; height: 8px;
+            border-radius: 50%;
+            flex-shrink: 0;
+        }
+
+        .dot-onsite { background: var(--green); }
+        .dot-online { background: var(--blue); }
+
+        .breakdown-value {
+            font-weight: 700;
+            color: var(--green);
+        }
+
+        .online-breakdown {
+            margin-top: 0.3rem;
+            padding: 0.6rem 0.75rem;
+            background: var(--blue-light);
+            border-radius: var(--radius-sm);
+            display: flex;
+            flex-direction: column;
+            gap: 0.3rem;
+        }
+
+        .breakdown-item-small {
+            display: flex;
+            justify-content: space-between;
+            font-size: 0.72rem;
+            color: var(--text-soft);
+        }
+
+        .breakdown-label-small { font-weight: 500; }
+        .breakdown-value-small { font-weight: 600; color: var(--blue); }
+
+        /* ─── MENU TERLARIS ──────────────────────── */
+        .menu-popular-wrapper { margin-bottom: 2rem; }
+
+        .menu-categories {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 0.85rem;
+        }
+
+        .menu-category-group {
+            background: var(--white);
+            border-radius: var(--radius-md);
+            padding: 1.1rem;
+            border: 1.5px solid var(--brown-pale);
+            box-shadow: var(--shadow-sm);
+            transition: all var(--transition);
+            overflow: hidden;
+        }
+
+        .menu-category-group:hover {
+            border-color: var(--brown-light);
+            transform: translateY(-3px);
+            box-shadow: var(--shadow-md);
+        }
+
+        .menu-category {
+            display: flex;
+            align-items: center;
+            gap: 0.7rem;
+            margin-bottom: 0.85rem;
+            padding-bottom: 0.85rem;
+            border-bottom: 1px solid var(--brown-pale);
+            border: none;
+            padding: 0;
+            margin-bottom: 0.75rem;
+            padding-bottom: 0.75rem;
+            border-bottom: 1px solid var(--brown-pale);
+        }
+
+        .category-icon {
+            width: 38px;
+            height: 38px;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1rem;
+            flex-shrink: 0;
+        }
+
+        .menu-category.coffee .category-icon { background: var(--blue-light); color: var(--blue); }
+        .menu-category.noncoffee .category-icon { background: var(--green-light); color: var(--green); }
+        .menu-category.snack .category-icon { background: var(--orange-light); color: var(--orange); }
+
+        .category-content h3 {
+            font-size: 0.875rem;
+            font-weight: 700;
+            color: var(--text-dark);
+        }
+
+        .category-items {
+            display: flex;
+            flex-direction: column;
+            gap: 0.45rem;
+        }
+
+        .category-item {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.45rem 0.6rem;
+            background: var(--cream);
+            border-radius: 8px;
+            font-size: 0.78rem;
+            transition: background var(--transition);
+        }
+
+        .category-item:hover { background: var(--brown-pale); }
+
+        .item-rank {
+            width: 22px; height: 22px;
+            border-radius: 50%;
+            background: var(--brown-main);
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.68rem;
+            font-weight: 700;
+            flex-shrink: 0;
+        }
+
+        .item-rank.rank-1 { background: var(--gold); }
+        .item-rank.rank-2 { background: var(--text-soft); }
+        .item-rank.rank-3 { background: var(--brown-light); }
+
+        .item-name {
+            flex: 1;
+            color: var(--text-dark);
+            font-weight: 500;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .item-count {
+            color: var(--text-soft);
+            font-size: 0.7rem;
+            font-weight: 600;
+            flex-shrink: 0;
+            background: var(--brown-pale);
+            padding: 2px 6px;
+            border-radius: 20px;
+        }
+
+        /* ─── GRAFIK ─────────────────────────────── */
+        .charts-wrapper { margin-bottom: 1.5rem; }
+
+        .charts-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 0.85rem;
+            min-width: 0;
+        }
+
+        .chart-canvas-wrap {
+            position: relative;
+            width: 100%;
+            min-width: 0;
+            overflow: hidden;
+        }
+
+        .chart-canvas-wrap canvas {
+            max-width: 100% !important;
+            width: 100% !important;
+            height: auto !important;
+        }
+
+        .chart-card {
+            background: var(--white);
+            border-radius: var(--radius-md);
+            padding: 1.25rem;
+            border: 1.5px solid var(--brown-pale);
+            box-shadow: var(--shadow-sm);
+            transition: all var(--transition);
+            overflow: hidden;
+            min-width: 0;
+        }
+
+        .chart-card:hover {
+            border-color: var(--brown-light);
+        }
+
+        .chart-card.full-width { grid-column: span 2; }
+
+        .chart-header {
+            display: flex;
+            align-items: flex-start;
+            justify-content: space-between;
+            margin-bottom: 1rem;
+            gap: 0.75rem;
+            flex-wrap: wrap;
+        }
+
+        .chart-title-block h4 {
+            font-size: 0.9rem;
+            font-weight: 700;
+            color: var(--text-dark);
+            margin-bottom: 2px;
+        }
+
+        .chart-title-block p {
+            font-size: 0.72rem;
+            color: var(--text-soft);
+        }
+
+        .chart-tabs {
+            display: flex;
+            background: var(--cream);
+            border-radius: 8px;
+            padding: 3px;
+            gap: 2px;
+            flex-shrink: 0;
+        }
+
+        .chart-tab {
+            padding: 4px 10px;
+            border-radius: 6px;
+            font-size: 0.7rem;
+            font-weight: 600;
+            color: var(--text-soft);
+            cursor: pointer;
+            border: none;
+            background: transparent;
+            transition: all var(--transition);
+            font-family: 'DM Sans', sans-serif;
+        }
+
+        .chart-tab.active {
+            background: var(--white);
+            color: var(--brown-main);
+            box-shadow: 0 1px 4px rgba(61,35,20,0.12);
+        }
+
+        .chart-legend {
+            display: flex;
+            gap: 1rem;
+            flex-wrap: wrap;
+            margin-bottom: 0.75rem;
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            font-size: 0.72rem;
+            color: var(--text-soft);
+            font-weight: 500;
+        }
+
+        .legend-dot {
+            width: 10px; height: 10px;
+            border-radius: 3px;
+            flex-shrink: 0;
+        }
+
+        .chart-summary {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 0.9rem;
+            flex-wrap: wrap;
+        }
+
+        .summary-item .s-label {
+            font-size: 0.68rem;
+            color: var(--text-soft);
+            font-weight: 500;
+            margin-bottom: 1px;
+        }
+
+        .summary-item .s-value {
+            font-size: 1rem;
+            font-weight: 700;
+            color: var(--text-dark);
+        }
+
+        .summary-item .s-value.up { color: var(--green); }
+        .summary-item .s-value.down { color: var(--red); }
+
+        /* ─── NOTIFICATION ───────────────────────── */
+        @keyframes slideIn {
+            from { transform: translateX(120%); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+
+        @keyframes slideOut {
+            from { transform: translateX(0); opacity: 1; }
+            to { transform: translateX(120%); opacity: 0; }
+        }
+
+        /* ─── RESPONSIVE ─────────────────────────── */
+        @media (max-width: 768px) {
+            .dashboard-navbar { padding: 0 10px; height: 58px; }
+            .navbar-brand { font-size: 1.1rem; }
+            .admin-name { display: none; }
+
+            .dashboard-container { padding: 1.25rem 10px 2.5rem; }
+
+            .header-text h1 { font-size: 1.6rem; }
+            .header-date { display: none; }
+
+            .menu-buttons { grid-template-columns: repeat(auto-fill, minmax(80px, 1fr)); gap: 0.6rem; padding: 1rem; }
+
+            .neraca-grid { grid-template-columns: 1fr; }
+            .stats-grid { grid-template-columns: 1fr; gap: 0.75rem; }
+            .stat-card.revenue { grid-row: span 1; }
+
+            .menu-categories { grid-template-columns: 1fr; }
+            .charts-grid { grid-template-columns: 1fr; }
+            .chart-card.full-width { grid-column: span 1; }
+        }
+
+        @media (min-width: 480px) and (max-width: 768px) {
+            .neraca-grid { grid-template-columns: 1fr; }
+            .stats-grid { grid-template-columns: 1fr 1fr; }
+            .stat-card.revenue { grid-column: span 2; flex-direction: row; align-items: flex-start; }
+            .stat-card.revenue .stat-top { flex-direction: row; }
+            .menu-categories { grid-template-columns: 1fr 1fr; }
+            .menu-category-group.snack-group { grid-column: span 2; }
+        }
+
+        @media (min-width: 769px) {
+            .neraca-grid { grid-template-columns: repeat(3, 1fr); }
+            .stats-grid { grid-template-columns: 1fr 1fr; }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Navbar -->
+    <nav class="dashboard-navbar">
+        <div class="navbar-left">
+            <img id="navLogo" src="logo.png" alt="" class="navbar-logo">
+            <span id="navBrand" class="navbar-brand">Nerai Coffee</span>
+        </div>
+        <div class="navbar-right">
+            <div class="admin-info" onclick="showAdminMenu()">
+                <span id="navAdminName" class="admin-name"></span>
+                <img id="navAdminPhoto" src="" alt="" class="admin-photo" onerror="this.style.display='none'">
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <div class="dashboard-container">
+
+        <!-- Header -->
+        <div class="dashboard-header">
+            <div class="header-text">
+                <h1>Dashboard</h1>
+                <p>Selamat datang di panel admin Nerai Coffee</p>
+            </div>
+            <div class="header-date" id="headerDate"></div>
+        </div>
+
+        <!-- Menu Accordion -->
+        <div class="section-label"><i class="fas fa-th-large"></i> Navigasi</div>
+        <div class="menu-accordion">
+            <div class="accordion-header" onclick="toggleAccordion()">
+                <div class="accordion-header-left">
+                    <i class="fas fa-bars"></i>
+                    <h3>Menu</h3>
+                </div>
+                <i class="fas fa-chevron-down chevron" id="accordionIcon"></i>
+            </div>
+            <div class="accordion-content" id="accordionContent">
+                <div class="menu-buttons">
+                    <button class="menu-btn" onclick="navigateTo('identitas')">
+                        <i class="fas fa-store"></i>
+                        <span>Identitas</span>
+                    </button>
+                    <button class="menu-btn" onclick="navigateTo('pengaturan')">
+                        <i class="fas fa-sliders-h"></i>
+                        <span>Pengaturan</span>
+                    </button>
+                    <button class="menu-btn" onclick="navigateTo('product')">
+                        <i class="fas fa-coffee"></i>
+                        <span>Product</span>
+                    </button>
+                    <button class="menu-btn" onclick="navigateTo('pemasukan')">
+                        <i class="fas fa-arrow-trend-down"></i>
+                        <span>Pemasukan</span>
+                    </button>
+                    <button class="menu-btn" onclick="navigateTo('pengeluaran')">
+                        <i class="fas fa-arrow-trend-up"></i>
+                        <span>Pengeluaran</span>
+                    </button>
+                    <button class="menu-btn" onclick="navigateTo('laporan')">
+                        <i class="fas fa-chart-bar"></i>
+                        <span>Laporan</span>
+                    </button>
+                    <div style="position:relative;" onmouseenter="showBadgeToast()" onmouseleave="hideBadgeToast()">
+                        <button class="menu-btn" id="btnTransaksiBerlangsung" onclick="navigateTo('transaksi-berlangsung')" style="width:100%;">
+                            <i class="fas fa-spinner fa-spin"></i>
+                            <span>Transaksi Berlangsung</span>
+                        </button>
+                        <span id="badgeNewOrder" style="display:none; position:absolute; top:-8px; right:-8px; background:#e53e3e; color:#fff; font-size:0.65rem; font-weight:700; border-radius:50%; width:20px; height:20px; line-height:20px; text-align:center; border:1.5px solid #000; z-index:10; pointer-events:none;"></span>
+
+                    </div>
+                    <button class="menu-btn" onclick="navigateTo('backup-reset')">
+                        <i class="fas fa-database"></i>
+                        <span>Back Up & Reset</span>
+                    </button>
+                    <button class="menu-btn logout-btn" onclick="handleLogout()">
+                        <i class="fas fa-right-from-bracket"></i>
+                        <span>LogOut</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Neraca Keuangan -->
+        <div class="stats-wrapper">
+            <div class="section-label"><i class="fas fa-scale-balanced"></i> Neraca Keuangan</div>
+            <div class="neraca-grid">
+
+                <!-- ── KONTAINER PEMASUKAN ── -->
+                <div class="neraca-card pemasukan">
+                    <div class="neraca-card-header">
+                        <div class="neraca-header-left">
+                            <div class="neraca-icon"><i class="fas fa-arrow-trend-up"></i></div>
+                            <span class="neraca-header-title">Pemasukan</span>
+                        </div>
+                        <a href="pemasukan.html" class="neraca-link"><i class="fas fa-arrow-up-right-from-square" style="font-size:0.6rem;margin-right:3px;"></i>Detail</a>
+                    </div>
+                    <div class="neraca-card-body">
+
+                        <!-- Take Away -->
+                        <div class="preview-card take-away">
+                            <div class="preview-card-icon"><i class="fas fa-bag-shopping"></i></div>
+                            <div class="preview-card-info">
+                                <div class="preview-card-label">Take Away</div>
+                                <div class="preview-card-value" id="neraca-take-value">
+                                    <span class="skeleton" style="width:80px;height:18px;">&nbsp;</span>
+                                </div>
+                                <div class="preview-card-count" id="neraca-take-count">&nbsp;</div>
+                            </div>
+                        </div>
+
+                        <!-- Onsite -->
+                        <div class="preview-card onsite">
+                            <div class="preview-card-icon"><i class="fas fa-house"></i></div>
+                            <div class="preview-card-info">
+                                <div class="preview-card-label">On Site</div>
+                                <div class="preview-card-value" id="neraca-onsite-value">
+                                    <span class="skeleton" style="width:80px;height:18px;">&nbsp;</span>
+                                </div>
+                                <div class="preview-card-count" id="neraca-onsite-count">&nbsp;</div>
+                            </div>
+                        </div>
+
+                        <!-- Total -->
+                        <div class="preview-card total-all">
+                            <div class="preview-card-icon"><i class="fas fa-coins"></i></div>
+                            <div class="preview-card-info">
+                                <div class="preview-card-label">Total Pemasukan</div>
+                                <div class="preview-card-value" id="neraca-total-value">
+                                    <span class="skeleton" style="width:90px;height:18px;">&nbsp;</span>
+                                </div>
+                                <div class="preview-card-count" id="neraca-total-count">&nbsp;</div>
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+
+                <!-- ── KONTAINER PENGELUARAN ── -->
+                <div class="neraca-card pengeluaran">
+                    <div class="neraca-card-header">
+                        <div class="neraca-header-left">
+                            <div class="neraca-icon"><i class="fas fa-arrow-trend-down"></i></div>
+                            <span class="neraca-header-title">Pengeluaran</span>
+                        </div>
+                        <a href="pengeluaran.html" class="neraca-link"><i class="fas fa-arrow-up-right-from-square" style="font-size:0.6rem;margin-right:3px;"></i>Detail</a>
+                    </div>
+                    <div class="neraca-card-body">
+
+                        <!-- Total Pengeluaran -->
+                        <div class="preview-card" style="--accent:var(--red);">
+                            <div class="preview-card-icon" style="background:var(--red-light);color:var(--red);"><i class="fas fa-money-bill-wave"></i></div>
+                            <div class="preview-card-info">
+                                <div class="preview-card-label">Total Pengeluaran</div>
+                                <div class="preview-card-value" id="neraca-pgr-total" style="color:var(--red);">
+                                    <span class="skeleton" style="width:80px;height:18px;">&nbsp;</span>
+                                </div>
+                                <div class="preview-card-count" id="neraca-pgr-count">&nbsp;</div>
+                            </div>
+                        </div>
+
+                        <!-- Bulan Ini -->
+                        <div class="preview-card" style="--accent:var(--orange);">
+                            <div class="preview-card-icon" style="background:var(--orange-light);color:var(--orange);"><i class="fas fa-calendar-days"></i></div>
+                            <div class="preview-card-info">
+                                <div class="preview-card-label">Bulan Ini</div>
+                                <div class="preview-card-value" id="neraca-pgr-bulan" style="color:var(--orange);">
+                                    <span class="skeleton" style="width:80px;height:18px;">&nbsp;</span>
+                                </div>
+                                <div class="preview-card-count" id="neraca-pgr-bulan-count">&nbsp;</div>
+                            </div>
+                        </div>
+
+                        <!-- Hari Ini -->
+                        <div class="preview-card" style="--accent:var(--gold);">
+                            <div class="preview-card-icon" style="background:#fef9ec;color:var(--gold);"><i class="fas fa-sun"></i></div>
+                            <div class="preview-card-info">
+                                <div class="preview-card-label">Hari Ini</div>
+                                <div class="preview-card-value" id="neraca-pgr-hari" style="color:var(--gold);">
+                                    <span class="skeleton" style="width:80px;height:18px;">&nbsp;</span>
+                                </div>
+                                <div class="preview-card-count" id="neraca-pgr-hari-count">&nbsp;</div>
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+
+                <!-- ── KONTAINER BALANCE ── -->
+                <div class="neraca-card balance">
+                    <div class="neraca-card-header">
+                        <div class="neraca-header-left">
+                            <div class="neraca-icon"><i class="fas fa-wallet"></i></div>
+                            <span class="neraca-header-title">Balance</span>
+                        </div>
+                        <a href="#" class="neraca-link" style="opacity:.45;pointer-events:none;"><i class="fas fa-arrow-up-right-from-square" style="font-size:0.6rem;margin-right:3px;"></i>Detail</a>
+                    </div>
+                    <div class="neraca-card-body">
+
+                        <!-- Total Pemasukan -->
+                        <div class="preview-card onsite">
+                            <div class="preview-card-icon"><i class="fas fa-arrow-trend-up"></i></div>
+                            <div class="preview-card-info">
+                                <div class="preview-card-label">Total Pemasukan</div>
+                                <div class="preview-card-value" id="neraca-bal-pemasukan" style="color:var(--green);">
+                                    <span class="skeleton" style="width:80px;height:18px;">&nbsp;</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Total Pengeluaran -->
+                        <div class="preview-card" style="position:relative;overflow:hidden;background:var(--cream);border:1.5px solid var(--brown-pale);border-radius:var(--radius-sm);padding:0.7rem 0.85rem;display:flex;align-items:center;gap:0.75rem;">
+                            <div style="position:absolute;left:0;top:0;bottom:0;width:3px;background:var(--red);border-radius:3px 0 0 3px;"></div>
+                            <div class="preview-card-icon" style="background:var(--red-light);color:var(--red);"><i class="fas fa-arrow-trend-down"></i></div>
+                            <div class="preview-card-info">
+                                <div class="preview-card-label">Total Pengeluaran</div>
+                                <div class="preview-card-value" id="neraca-bal-pengeluaran" style="color:var(--red);">
+                                    <span class="skeleton" style="width:80px;height:18px;">&nbsp;</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Balance -->
+                        <div class="preview-card total-all">
+                            <div class="preview-card-icon"><i class="fas fa-scale-balanced"></i></div>
+                            <div class="preview-card-info">
+                                <div class="preview-card-label">Balance</div>
+                                <div class="preview-card-value" id="neraca-bal-total">
+                                    <span class="skeleton" style="width:80px;height:18px;">&nbsp;</span>
+                                </div>
+                                <div class="preview-card-count" id="neraca-bal-total-label">&nbsp;</div>
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+
+            </div>
+        </div>
+
+        <!-- Grafik Perbandingan -->
+        <div class="charts-wrapper">
+            <div class="section-label"><i class="fas fa-chart-line"></i> Grafik Keuangan</div>
+            <div class="charts-grid">
+
+                <!-- Line Chart: Tren Bulanan -->
+                <div class="chart-card full-width">
+                    <div class="chart-header">
+                        <div class="chart-title-block">
+                            <h4>Tren Pemasukan & Pengeluaran</h4>
+                            <p>Perbandingan bulanan dalam satu tahun</p>
+                        </div>
+                        <div class="chart-tabs">
+                            <button class="chart-tab active" onclick="switchLineChart('2025', this)">2025</button>
+                            <button class="chart-tab" onclick="switchLineChart('2024', this)">2024</button>
+                        </div>
+                    </div>
+                    <div class="chart-legend">
+                        <div class="legend-item"><span class="legend-dot" style="background:#2d6a4f"></span> Pemasukan</div>
+                        <div class="legend-item"><span class="legend-dot" style="background:#c0392b"></span> Pengeluaran</div>
+                        <div class="legend-item"><span class="legend-dot" style="background:#d4a843"></span> Balance</div>
+                    </div>
+                    <div class="chart-canvas-wrap">
+                        <canvas id="lineChart"></canvas>
+                    </div>
+                </div>
+
+                <!-- Bar Chart: Total Tahunan -->
+                <div class="chart-card">
+                    <div class="chart-header">
+                        <div class="chart-title-block">
+                            <h4>Perbandingan Tahunan</h4>
+                            <p>Pemasukan vs Pengeluaran per tahun</p>
+                        </div>
+                    </div>
+                    <div class="chart-summary">
+                        <div class="summary-item">
+                            <div class="s-label">Total Pemasukan 2025</div>
+                            <div class="s-value up">Rp 58.4M</div>
+                        </div>
+                        <div class="summary-item">
+                            <div class="s-label">vs 2024</div>
+                            <div class="s-value up">↑ 14.2%</div>
+                        </div>
+                    </div>
+                    <div class="chart-canvas-wrap">
+                        <canvas id="barChart"></canvas>
+                    </div>
+                </div>
+
+                <!-- Donut Chart: Komposisi Pemasukan -->
+                <div class="chart-card">
+                    <div class="chart-header">
+                        <div class="chart-title-block">
+                            <h4>Komposisi Pemasukan</h4>
+                            <p>Onsite vs Online bulan ini</p>
+                        </div>
+                    </div>
+                    <div class="chart-summary">
+                        <div class="summary-item">
+                            <div class="s-label">Onsite</div>
+                            <div class="s-value">48%</div>
+                        </div>
+                        <div class="summary-item">
+                            <div class="s-label">Online</div>
+                            <div class="s-value" style="color:var(--blue)">52%</div>
+                        </div>
+                    </div>
+                    <div class="chart-canvas-wrap">
+                        <canvas id="donutChart"></canvas>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+
+        <!-- Menu Terlaris -->
+        <div class="menu-popular-wrapper">
+            <div class="section-label"><i class="fas fa-fire"></i> Menu Terlaris</div>
+            <div class="menu-categories">
+
+                <!-- Coffee -->
+                <div class="menu-category-group coffee-group">
+                    <div class="menu-category coffee">
+                        <div class="category-icon"><i class="fas fa-coffee"></i></div>
+                        <div class="category-content"><h3>Coffee</h3></div>
+                    </div>
+                    <div class="category-items">
+                        <div class="category-item">
+                            <span class="item-rank rank-1">1</span>
+                            <span class="item-name">Cappuccino</span>
+                            <span class="item-count">45</span>
+                        </div>
+                        <div class="category-item">
+                            <span class="item-rank rank-2">2</span>
+                            <span class="item-name">Espresso</span>
+                            <span class="item-count">38</span>
+                        </div>
+                        <div class="category-item">
+                            <span class="item-rank rank-3">3</span>
+                            <span class="item-name">Americano</span>
+                            <span class="item-count">30</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Non Coffee -->
+                <div class="menu-category-group noncoffee-group">
+                    <div class="menu-category noncoffee">
+                        <div class="category-icon"><i class="fas fa-mug-hot"></i></div>
+                        <div class="category-content"><h3>Non Coffee</h3></div>
+                    </div>
+                    <div class="category-items">
+                        <div class="category-item">
+                            <span class="item-rank rank-1">1</span>
+                            <span class="item-name">Green Tea Latte</span>
+                            <span class="item-count">32</span>
+                        </div>
+                        <div class="category-item">
+                            <span class="item-rank rank-2">2</span>
+                            <span class="item-name">Chocolate Milk</span>
+                            <span class="item-count">27</span>
+                        </div>
+                        <div class="category-item">
+                            <span class="item-rank rank-3">3</span>
+                            <span class="item-name">Taro Latte</span>
+                            <span class="item-count">22</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Snack -->
+                <div class="menu-category-group snack-group">
+                    <div class="menu-category snack">
+                        <div class="category-icon"><i class="fas fa-cookie-bite"></i></div>
+                        <div class="category-content"><h3>Snack</h3></div>
+                    </div>
+                    <div class="category-items">
+                        <div class="category-item">
+                            <span class="item-rank rank-1">1</span>
+                            <span class="item-name">French Fries</span>
+                            <span class="item-count">28</span>
+                        </div>
+                        <div class="category-item">
+                            <span class="item-rank rank-2">2</span>
+                            <span class="item-name">Roti Bakar</span>
+                            <span class="item-count">20</span>
+                        </div>
+                        <div class="category-item">
+                            <span class="item-rank rank-3">3</span>
+                            <span class="item-name">Dimsum</span>
+                            <span class="item-count">15</span>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+
+    </div><!-- /dashboard-container -->
+
+    <script>
+        // ── Date display
+        (function() {
+            const el = document.getElementById('headerDate');
+            if (!el) return;
+            const now = new Date();
+            const days = ['Minggu','Senin','Selasa','Rabu','Kamis','Jumat','Sabtu'];
+            const months = ['Jan','Feb','Mar','Apr','Mei','Jun','Jul','Agt','Sep','Okt','Nov','Des'];
+            el.innerHTML = `${days[now.getDay()]}, ${now.getDate()} ${months[now.getMonth()]} ${now.getFullYear()}<strong>${now.toLocaleTimeString('id-ID', {hour:'2-digit',minute:'2-digit'})}</strong>`;
+        })();
+
+        // ── Accordion
+        function toggleAccordion() {
+            const header = document.querySelector('.accordion-header');
+            const content = document.getElementById('accordionContent');
+            const icon = document.getElementById('accordionIcon');
+            header.classList.toggle('active');
+            content.classList.toggle('active');
+        }
+
+        document.addEventListener('click', function(event) {
+            const accordion = document.querySelector('.menu-accordion');
+            const header = document.querySelector('.accordion-header');
+            const content = document.getElementById('accordionContent');
+            if (!accordion.contains(event.target) && content.classList.contains('active')) {
+                header.classList.remove('active');
+                content.classList.remove('active');
+            }
+        });
+
+        // ── Supabase
+        const supabaseUrl = 'https://fzrmhmedruvzyvyvgudw.supabase.co';
+        const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZ6cm1obWVkcnV2enl2eXZndWR3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzc3NDkzODUsImV4cCI6MjA5MzMyNTM4NX0.0HNIWfahho-IswD2xUDcsADo6GgtN7DgBJj-SlznXNE';
+        let supabaseClient;
+        try {
+            supabaseClient = window.supabase.createClient(supabaseUrl, supabaseKey);
+        } catch(e) {
+            console.error('Supabase init error:', e);
+        }
+
+        async function loadNavbarData() {
+            if (!supabaseClient) return;
+            try {
+                const { data, error } = await supabaseClient
+                    .from('identitas')
+                    .select('*')
+                    .limit(1);
+                if (error) { console.error('Load navbar error:', error); return; }
+                if (data && data.length > 0) {
+                    const row = data[0];
+                    if (row.logo_usaha) document.getElementById('navLogo').src = row.logo_usaha;
+                    if (row.nama_usaha) document.getElementById('navBrand').textContent = row.nama_usaha;
+                    if (row.owner) document.getElementById('navAdminName').textContent = row.owner;
+                    if (row.photo_owner) {
+                        const el = document.getElementById('navAdminPhoto');
+                        el.src = row.photo_owner;
+                        el.style.display = '';
+                    }
+                }
+            } catch(e) {
+                console.error('Load navbar error:', e);
+            }
+        }
+
+        let newOrderCount = 0;
+
+        async function checkNewOrders() {
+            if (!supabaseClient) return;
+            try {
+                const { count, error } = await supabaseClient
+                    .from('customer_sementara')
+                    .select('*', { count: 'exact', head: true })
+                    .eq('status', 'New Order');
+
+                const badge = document.getElementById('badgeNewOrder');
+                newOrderCount = (!error && count > 0) ? count : 0;
+
+                if (newOrderCount > 0) {
+                    badge.textContent = newOrderCount;
+                    badge.style.display = 'inline-block';
+                } else {
+                    badge.style.display = 'none';
+                }
+            } catch(e) {
+                console.error('Check new orders error:', e);
+            }
+        }
+
+        function showBadgeToast() {
+            if (newOrderCount <= 0) return;
+            let toast = document.getElementById('badgeToast');
+            if (!toast) {
+                toast = document.createElement('div');
+                toast.id = 'badgeToast';
+                toast.style.cssText = 'position:fixed; background:#1a1009; color:#fff; font-size:0.72rem; font-weight:500; border-radius:8px; padding:8px 12px; white-space:nowrap; border:1.5px solid #000; z-index:99999; pointer-events:none; line-height:1.5;';
+                toast.innerHTML = '<div style="font-weight:700; margin-bottom:2px;">&#x1F514; Pesanan Baru</div><div id="badgeToastText"></div>';
+                document.body.appendChild(toast);
+            }
+            document.getElementById('badgeToastText').textContent = `Terdapat ${newOrderCount} pesanan Take Away yang belum di proses`;
+            const badge = document.getElementById('badgeNewOrder');
+            const rect = badge.getBoundingClientRect();
+            toast.style.display = 'block';
+            // Hitung posisi setelah toast terlihat agar offsetHeight akurat
+            toast.style.top = (rect.top - toast.offsetHeight - 8) + 'px';
+            toast.style.left = Math.max(8, rect.right - toast.offsetWidth) + 'px';
+        }
+
+
+        function hideBadgeToast() {
+            const toast = document.getElementById('badgeToast');
+            if (toast) toast.style.display = 'none';
+        }
+
+        document.addEventListener('DOMContentLoaded', function() {
+            loadNavbarData();
+            checkNewOrders();
+            loadNeraca();
+        });
+
+        // ── Neraca — tarik pemasukan, pengeluaran, dan hitung balance
+        async function loadNeraca() {
+            try {
+                if (!supabaseClient) return;
+
+                const today     = new Date().toISOString().split('T')[0];
+                const thisMonth = today.substring(0, 7);
+
+                const fmt = n => 'Rp ' + n.toLocaleString('id-ID');
+
+                // ── Fetch semua tabel secara paralel
+                const [
+                    { data: dataTake,    error: errTake    },
+                    { data: dataOnsite,  error: errOnsite  },
+                    { data: dataPgr,     error: errPgr     },
+                ] = await Promise.all([
+                    supabaseClient.from('customer_takeaway_selesai').select('total_belanja, tanggal'),
+                    supabaseClient.from('onsite_selesai').select('total_belanja, tanggal'),
+                    supabaseClient.from('pengeluaran').select('total, tanggal'),
+                ]);
+
+                // ── Hitung Pemasukan
+                const sumTake    = (!errTake   && dataTake)   ? dataTake.reduce((a,r)   => a + (parseInt(r.total_belanja)||0), 0) : 0;
+                const cntTake    = (!errTake   && dataTake)   ? dataTake.length   : 0;
+                const sumOnsite  = (!errOnsite && dataOnsite) ? dataOnsite.reduce((a,r) => a + (parseInt(r.total_belanja)||0), 0) : 0;
+                const cntOnsite  = (!errOnsite && dataOnsite) ? dataOnsite.length : 0;
+                const sumPemasukan = sumTake + sumOnsite;
+                const cntPemasukan = cntTake + cntOnsite;
+
+                // Pemasukan bulan ini & hari ini
+                const allPemasukan = [
+                    ...((!errTake && dataTake) ? dataTake.map(r => ({ total: parseInt(r.total_belanja)||0, tanggal: r.tanggal||'' })) : []),
+                    ...((!errOnsite && dataOnsite) ? dataOnsite.map(r => ({ total: parseInt(r.total_belanja)||0, tanggal: r.tanggal||'' })) : []),
+                ];
+                const pemBulan = allPemasukan.filter(r => r.tanggal.substring(0,7) === thisMonth);
+                const pemHari  = allPemasukan.filter(r => r.tanggal.substring(0,10) === today);
+                const sumPemBulan = pemBulan.reduce((a,r) => a + r.total, 0);
+                const sumPemHari  = pemHari.reduce((a,r)  => a + r.total, 0);
+
+                // ── Hitung Pengeluaran
+                const allPgr      = (!errPgr && dataPgr) ? dataPgr : [];
+                const sumPgr      = allPgr.reduce((a,r) => a + (parseInt(r.total)||0), 0);
+                const cntPgr      = allPgr.length;
+                const pgrBulan    = allPgr.filter(r => (r.tanggal||'').substring(0,7) === thisMonth);
+                const pgrHari     = allPgr.filter(r => (r.tanggal||'').substring(0,10) === today);
+                const sumPgrBulan = pgrBulan.reduce((a,r) => a + (parseInt(r.total)||0), 0);
+                const sumPgrHari  = pgrHari.reduce((a,r)  => a + (parseInt(r.total)||0), 0);
+
+                // ── Hitung Balance
+                const balTotal = sumPemasukan - sumPgr;
+
+                // ── Update DOM Pemasukan
+                document.getElementById('neraca-take-value').textContent   = fmt(sumTake);
+                document.getElementById('neraca-take-count').textContent    = cntTake + ' transaksi';
+                document.getElementById('neraca-onsite-value').textContent  = fmt(sumOnsite);
+                document.getElementById('neraca-onsite-count').textContent  = cntOnsite + ' transaksi';
+                document.getElementById('neraca-total-value').textContent   = fmt(sumPemasukan);
+                document.getElementById('neraca-total-count').textContent   = cntPemasukan + ' transaksi';
+
+                // ── Update DOM Pengeluaran
+                document.getElementById('neraca-pgr-total').textContent       = fmt(sumPgr);
+                document.getElementById('neraca-pgr-count').textContent       = cntPgr + ' data';
+                document.getElementById('neraca-pgr-bulan').textContent       = fmt(sumPgrBulan);
+                document.getElementById('neraca-pgr-bulan-count').textContent = pgrBulan.length + ' data';
+                document.getElementById('neraca-pgr-hari').textContent        = fmt(sumPgrHari);
+                document.getElementById('neraca-pgr-hari-count').textContent  = pgrHari.length + ' data';
+
+                // ── Update DOM Balance
+                document.getElementById('neraca-bal-pemasukan').textContent  = fmt(sumPemasukan);
+                document.getElementById('neraca-bal-pengeluaran').textContent = fmt(sumPgr);
+
+                const el = document.getElementById('neraca-bal-total');
+                el.textContent = fmt(Math.abs(balTotal));
+                el.style.color = balTotal >= 0 ? 'var(--green)' : 'var(--red)';
+                const lbl = document.getElementById('neraca-bal-total-label');
+                lbl.textContent = balTotal >= 0 ? 'Surplus' : 'Defisit';
+                lbl.style.color = balTotal >= 0 ? 'var(--green)' : 'var(--red)';
+
+            } catch(e) {
+                console.error('loadNeraca error:', e);
+                ['neraca-take-value','neraca-onsite-value','neraca-total-value',
+                 'neraca-pgr-total','neraca-pgr-bulan','neraca-pgr-hari',
+                 'neraca-bal-pemasukan','neraca-bal-pengeluaran','neraca-bal-total'].forEach(id => {
+                    const el = document.getElementById(id);
+                    if (el) el.textContent = 'Gagal memuat';
+                });
+            }
+        }
+
+
+        // ── Navigation
+        function navigateTo(page) {
+            if (page === 'identitas') {
+                window.location.href = 'identitas.html';
+            } else if (page === 'pengaturan') {
+                window.location.href = 'pengaturan.html';
+            } else if (page === 'product') {
+                window.location.href = 'produk.html';
+            } else if (page === 'transaksi-berlangsung') {
+                window.location.href = 'transaksi.html';
+                            } else if (page === 'pemasukan') {
+                window.location.href = 'pemasukan.html';
+            } else if (page === 'pengeluaran') {
+                window.location.href = 'pengeluaran.html';
+            } else {
+                showNotification(`Navigasi ke ${page}`, 'info');
+            }
+        }
+
+        function handleLogout() {
+            showNotification('Logout berhasil!', 'success');
+            setTimeout(() => {
+                window.location.href = 'index.html';
+            }, 1500);
+        }
+
+        function showAdminMenu() {
+            showNotification('Menu admin clicked', 'info');
+        }
+
+        // ── Notification
+        function showNotification(message, type = 'info') {
+            const notification = document.createElement('div');
+            notification.style.cssText = `
+                position: fixed;
+                top: 20px;
+                right: 20px;
+                padding: 13px 20px;
+                border-radius: 12px;
+                color: white;
+                font-family: 'DM Sans', sans-serif;
+                font-weight: 600;
+                font-size: 0.875rem;
+                z-index: 9999;
+                animation: slideIn 0.35s cubic-bezier(0.4,0,0.2,1);
+                background: ${type === 'success' ? '#2d6a4f' : type === 'error' ? '#c0392b' : '#3d2314'};
+                box-shadow: 0 8px 24px rgba(0,0,0,0.2);
+                backdrop-filter: blur(8px);
+                display: flex; align-items: center; gap: 8px;
+            `;
+            const icon = type === 'success' ? '✓' : type === 'error' ? '✕' : 'ℹ';
+            notification.innerHTML = `<span style="font-size:1rem">${icon}</span> ${message}`;
+            document.body.appendChild(notification);
+            setTimeout(() => {
+                notification.style.animation = 'slideOut 0.3s ease forwards';
+                setTimeout(() => notification.remove(), 300);
+            }, 3000);
+        }
+        // ── Charts
+        Chart.defaults.font.family = "'DM Sans', sans-serif";
+        Chart.defaults.color = '#8a7060';
+        Chart.defaults.animation = false;
+        Chart.defaults.plugins.tooltip.animation = false;
+
+        const monthLabels = ['Jan','Feb','Mar','Apr','Mei','Jun','Jul','Agt','Sep','Okt','Nov','Des'];
+
+        const chartData = {
+            '2025': {
+                pemasukan: [38,42,45,51,49,55,58,52,60,56,62,58],
+                pengeluaran: [22,25,28,30,27,32,35,30,34,31,38,33],
+            },
+            '2024': {
+                pemasukan: [30,33,36,40,38,44,46,43,48,45,50,47],
+                pengeluaran: [18,20,22,24,22,26,28,25,27,24,30,27],
+            }
+        };
+
+        function getBalance(year) {
+            return chartData[year].pemasukan.map((p, i) => p - chartData[year].pengeluaran[i]);
+        }
+
+        // Line Chart
+        const lineCtx = document.getElementById('lineChart').getContext('2d');
+        const lineChart = new Chart(lineCtx, {
+            type: 'line',
+            data: {
+                labels: monthLabels,
+                datasets: [
+                    {
+                        label: 'Pemasukan',
+                        data: chartData['2025'].pemasukan,
+                        borderColor: '#2d6a4f',
+                        backgroundColor: 'rgba(45,106,79,0.08)',
+                        fill: true,
+                        tension: 0.4,
+                        pointBackgroundColor: '#2d6a4f',
+                        pointRadius: 4,
+                        pointHoverRadius: 6,
+                        borderWidth: 2.5,
+                    },
+                    {
+                        label: 'Pengeluaran',
+                        data: chartData['2025'].pengeluaran,
+                        borderColor: '#c0392b',
+                        backgroundColor: 'rgba(192,57,43,0.06)',
+                        fill: true,
+                        tension: 0.4,
+                        pointBackgroundColor: '#c0392b',
+                        pointRadius: 4,
+                        pointHoverRadius: 6,
+                        borderWidth: 2.5,
+                    },
+                    {
+                        label: 'Balance',
+                        data: getBalance('2025'),
+                        borderColor: '#d4a843',
+                        backgroundColor: 'rgba(212,168,67,0.06)',
+                        fill: false,
+                        tension: 0.4,
+                        pointBackgroundColor: '#d4a843',
+                        pointRadius: 3,
+                        pointHoverRadius: 5,
+                        borderWidth: 2,
+                        borderDash: [5,4],
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: true,
+                animation: false,
+                interaction: { mode: 'index', intersect: false },
+                plugins: {
+                    legend: { display: false },
+                    tooltip: {
+                        backgroundColor: '#3d2314',
+                        titleColor: '#f0e6d6',
+                        bodyColor: '#c49a78',
+                        padding: 12,
+                        cornerRadius: 10,
+                        callbacks: {
+                            label: ctx => ` ${ctx.dataset.label}: Rp ${ctx.parsed.y}00K`
+                        }
+                    }
+                },
+                scales: {
+                    x: {
+                        grid: { display: false },
+                        border: { display: false },
+                        ticks: { font: { size: 11 } }
+                    },
+                    y: {
+                        grid: { color: 'rgba(240,230,214,0.7)', drawBorder: false },
+                        border: { display: false, dash: [4,4] },
+                        ticks: {
+                            font: { size: 11 },
+                            callback: v => `${v}00K`
+                        }
+                    }
+                }
+            }
+        });
+
+        function switchLineChart(year, btn) {
+            document.querySelectorAll('.chart-tab').forEach(t => t.classList.remove('active'));
+            btn.classList.add('active');
+            lineChart.data.datasets[0].data = chartData[year].pemasukan;
+            lineChart.data.datasets[1].data = chartData[year].pengeluaran;
+            lineChart.data.datasets[2].data = getBalance(year);
+            lineChart.update('active');
+        }
+
+        // Bar Chart (Tahunan)
+        const barCtx = document.getElementById('barChart').getContext('2d');
+        new Chart(barCtx, {
+            type: 'bar',
+            data: {
+                labels: ['2021','2022','2023','2024','2025'],
+                datasets: [
+                    {
+                        label: 'Pemasukan',
+                        data: [320, 410, 465, 511, 584],
+                        backgroundColor: 'rgba(45,106,79,0.85)',
+                        borderRadius: 6,
+                        borderSkipped: false,
+                    },
+                    {
+                        label: 'Pengeluaran',
+                        data: [198, 245, 280, 313, 340],
+                        backgroundColor: 'rgba(192,57,43,0.8)',
+                        borderRadius: 6,
+                        borderSkipped: false,
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: true,
+                animation: false,
+                interaction: { mode: 'index' },
+                plugins: {
+                    legend: { display: false },
+                    tooltip: {
+                        backgroundColor: '#3d2314',
+                        titleColor: '#f0e6d6',
+                        bodyColor: '#c49a78',
+                        padding: 12,
+                        cornerRadius: 10,
+                        callbacks: {
+                            label: ctx => ` ${ctx.dataset.label}: Rp ${ctx.parsed.y * 100}K`
+                        }
+                    }
+                },
+                scales: {
+                    x: {
+                        grid: { display: false },
+                        border: { display: false },
+                        ticks: { font: { size: 11 } }
+                    },
+                    y: {
+                        grid: { color: 'rgba(240,230,214,0.7)' },
+                        border: { display: false },
+                        ticks: {
+                            font: { size: 11 },
+                            callback: v => `${v * 100}K`
+                        }
+                    }
+                }
+            }
+        });
+
+        // Donut Chart
+        const donutCtx = document.getElementById('donutChart').getContext('2d');
+        new Chart(donutCtx, {
+            type: 'doughnut',
+            data: {
+                labels: ['Onsite','Transfer Bank','DANA','GOPAY','OVO'],
+                datasets: [{
+                    data: [2500, 1000, 600, 600, 500],
+                    backgroundColor: ['#2d6a4f','#1a6fa8','#d4a843','#c05c1a','#8b6348'],
+                    borderColor: '#ffffff',
+                    borderWidth: 3,
+                    hoverOffset: 8,
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: true,
+                cutout: '65%',
+                plugins: {
+                    legend: {
+                        position: 'bottom',
+                        labels: {
+                            font: { size: 11 },
+                            padding: 10,
+                            boxWidth: 12,
+                            boxHeight: 12,
+                            borderRadius: 3,
+                        }
+                    },
+                    tooltip: {
+                        backgroundColor: '#3d2314',
+                        titleColor: '#f0e6d6',
+                        bodyColor: '#c49a78',
+                        padding: 12,
+                        cornerRadius: 10,
+                        callbacks: {
+                            label: ctx => ` Rp ${(ctx.parsed / 1000).toFixed(1)}M (${Math.round(ctx.parsed / 52 * 100)}%)`
+                        }
+                    }
+                }
+            }
+        });
+    </script>
+</body>
+</html>
