@@ -29,6 +29,8 @@ body {
     line-height: 1.6;
     color: #333;
     background-color: #f8f9fa;
+    padding: 0 5px;
+    overflow-x: hidden;
 }
  
 .container {
@@ -44,7 +46,10 @@ body {
     position: fixed;
     top: 0;
     width: 100%;
+    left: 0;
     z-index: 1000;
+    margin: 0 -5px;
+    padding: 0 5px;
 }
  
 .nav-wrapper {
@@ -2140,12 +2145,111 @@ body {
             color: #8a7060;
             line-height: 1.6;
         }
-        #btnKonfirmasiPesanan:disabled {
-            opacity: 0.5;
-            cursor: not-allowed;
-            pointer-events: none;
+
+        /* ===== MOBILE: Modal Detail Pesanan ===== */
+        @media (max-width: 600px) {
+            /* Konten modal lebih compact */
+            #orderDetailModal .orders-modal-content {
+                max-width: 100% !important;
+                width: calc(100% - 10px) !important;
+                padding: 0;
+                border-radius: 12px;
+                margin: 0.5rem auto;
+            }
+
+            /* Header modal */
+            #orderDetailModal .orders-header {
+                padding: 0.75rem 1rem;
+                margin-bottom: 0;
+            }
+
+            #orderDetailModal .orders-header i {
+                font-size: 1.5rem;
+            }
+
+            #orderDetailModal .orders-header h3 {
+                font-size: 1.1rem;
+            }
+
+            /* Tombol close lebih kecil */
+            #orderDetailModal .orders-close-btn {
+                top: 10px;
+                right: 10px;
+                font-size: 1rem;
+            }
+
+            /* Body konten detail pesanan */
+            #orderDetailBody {
+                padding: 0 0.75rem 1rem !important;
+                font-size: 0.88rem;
+            }
+
+            /* Semua teks di dalam detail body */
+            #orderDetailBody h4,
+            #orderDetailBody h5 {
+                font-size: 0.95rem;
+            }
+
+            #orderDetailBody p,
+            #orderDetailBody span,
+            #orderDetailBody div {
+                font-size: 0.85rem;
+            }
+
+            /* Tabel di dalam detail pesanan */
+            #orderDetailBody table {
+                font-size: 0.78rem;
+            }
+
+            #orderDetailBody table th,
+            #orderDetailBody table td {
+                padding: 6px 5px;
+                font-size: 0.78rem;
+            }
+
+            /* Info rows (label: value) */
+            #orderDetailBody .detail-row,
+            #orderDetailBody [style*="display:flex"],
+            #orderDetailBody [style*="display: flex"] {
+                gap: 6px !important;
+                font-size: 0.85rem !important;
+            }
+
+            /* Tombol-tombol aksi di dalam modal */
+            #orderDetailBody .btn,
+            #orderDetailBody button,
+            #orderDetailBody .btn-batalkan-pesanan,
+            #orderDetailBody .btn-cancel {
+                padding: 8px 12px !important;
+                font-size: 0.82rem !important;
+                border-radius: 7px !important;
+            }
+
+            /* Wrapper tombol agar tidak terpotong */
+            #orderDetailBody [style*="display:flex"][style*="gap"] {
+                flex-wrap: wrap !important;
+            }
+
+            /* Badge status */
+            #orderDetailBody [style*="border-radius:20px"],
+            #orderDetailBody [style*="border-radius: 20px"] {
+                font-size: 0.75rem !important;
+                padding: 3px 8px !important;
+            }
+
+            /* Gambar bukti bayar */
+            #orderDetailBody img {
+                max-width: 100% !important;
+                max-height: 180px !important;
+            }
+
+            /* Separator/divider */
+            #orderDetailBody hr {
+                margin: 0.5rem 0 !important;
+            }
         }
-    </style>
+
+        
 </head>
 <body>
     <!-- Header -->
