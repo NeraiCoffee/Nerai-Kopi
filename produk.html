@@ -784,6 +784,62 @@
         </div>
     </div>
 
+    <!-- Edit Product Modal -->
+    <div class="product-modal" id="editProductModal">
+        <div class="product-modal-content">
+            <div class="modal-header">
+                <h3><i class="fas fa-edit" style="color:#6f4e37;margin-right:8px;"></i>Edit Produk</h3>
+                <button class="modal-close" onclick="closeEditProductModal()">&times;</button>
+            </div>
+            <div class="modal-body">
+                <input type="hidden" id="editProductId">
+                <div class="form-group">
+                    <label>ID Produk</label>
+                    <input type="text" id="editProductIdDisplay" class="form-input" readonly style="background:#f5f5f5;color:#999;">
+                </div>
+                <div class="form-group">
+                    <label for="editProductCategory">Kategori</label>
+                    <select id="editProductCategory" class="form-input">
+                        <option value="coffee">Coffee</option>
+                        <option value="noncoffee">Non Coffee</option>
+                        <option value="snack">Snack</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="editProductName">Nama Produk</label>
+                    <input type="text" id="editProductName" class="form-input" placeholder="Masukkan nama produk">
+                </div>
+                <div class="form-group">
+                    <label for="editProductDescription">Deskripsi</label>
+                    <textarea id="editProductDescription" class="form-input" placeholder="Masukkan deskripsi produk"></textarea>
+                </div>
+                <div class="form-group">
+                    <label for="editProductPrice">Harga</label>
+                    <input type="number" id="editProductPrice" class="form-input" placeholder="Masukkan harga">
+                </div>
+                <div class="form-group">
+                    <label>Foto Saat Ini</label>
+                    <div id="editCurrentPhoto" style="margin-bottom:0.75rem;display:none;">
+                        <img id="editCurrentPhotoImg" src="" alt="Foto saat ini" style="max-width:100%;max-height:160px;border-radius:8px;border:2px solid #e0e0e0;display:block;">
+                        <p style="font-size:0.8rem;color:#999;margin-top:4px;">Biarkan kosong jika tidak ingin mengganti foto</p>
+                    </div>
+                    <label for="editProductPhoto" style="font-weight:400;font-size:0.85rem;color:#666;">Ganti Foto (opsional)</label>
+                    <input type="file" id="editProductPhoto" class="form-input" accept="image/*" onchange="previewEditPhoto()">
+                    <div class="photo-preview" id="editPhotoPreview">
+                        <img id="editPreviewImage" src="" alt="Preview">
+                        <button class="remove-photo" onclick="removeEditPhoto()">Hapus Photo Baru</button>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn-modal btn-modal-cancel" onclick="closeEditProductModal()">Batal</button>
+                <button class="btn-modal btn-modal-add" onclick="updateProductSubmit()">
+                    <i class="fas fa-save"></i> Update
+                </button>
+            </div>
+        </div>
+    </div>
+
     <script>
         // Supabase Configuration
         const supabaseUrl = 'https://fzrmhmedruvzyvyvgudw.supabase.co';
@@ -1025,9 +1081,157 @@
             }
         }
 
-        // Edit Product (placeholder)
-        function editProduct(productId) {
-            alert('Fitur edit produk akan segera hadir!');
+        // Edit Product - Fetch data and open modal
+        async function editProduct(productId) {
+            if (!supabaseClient) return;
+
+            try {
+                const { data, error } = await supabaseClient
+                    .from('produk')
+                    .select('*')
+                    .eq('id', productId)
+                    .single();
+
+                if (error || !data) {
+                    alert('Gagal memuat data produk!');
+                    return;
+                }
+
+                // Isi form modal edit dengan data produk
+                document.getElementById('editProductId').value = data.id;
+                document.getElementById('editProductIdDisplay').value = data.id;
+                document.getElementById('editProductCategory').value = data.kategori;
+                document.getElementById('editProductName').value = data.nama_produk || '';
+                document.getElementById('editProductDescription').value = data.deskripsi || '';
+                document.getElementById('editProductPrice').value = data.harga || '';
+
+                // Tampilkan foto saat ini jika ada
+                const currentPhotoDiv = document.getElementById('editCurrentPhoto');
+                const currentPhotoImg = document.getElementById('editCurrentPhotoImg');
+                if (data.photo) {
+                    currentPhotoImg.src = data.photo;
+                    currentPhotoDiv.style.display = 'block';
+                } else {
+                    currentPhotoDiv.style.display = 'none';
+                }
+
+                // Reset preview foto baru
+                removeEditPhoto();
+
+                // Buka modal
+                document.getElementById('editProductModal').classList.add('active');
+
+            } catch(e) {
+                console.error('Edit product error:', e);
+                alert('Terjadi kesalahan saat memuat data produk!');
+            }
+        }
+
+        // Close Edit Product Modal
+        function closeEditProductModal() {
+            document.getElementById('editProductModal').classList.remove('active');
+            document.getElementById('editProductId').value = '';
+            document.getElementById('editProductIdDisplay').value = '';
+            document.getElementById('editProductName').value = '';
+            document.getElementById('editProductDescription').value = '';
+            document.getElementById('editProductPrice').value = '';
+            document.getElementById('editCurrentPhoto').style.display = 'none';
+            removeEditPhoto();
+        }
+
+        // Preview foto baru di modal edit
+        function previewEditPhoto() {
+            const fileInput = document.getElementById('editProductPhoto');
+            const file = fileInput.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    document.getElementById('editPreviewImage').src = e.target.result;
+                    document.getElementById('editPhotoPreview').classList.add('active');
+                };
+                reader.readAsDataURL(file);
+            }
+        }
+
+        // Hapus preview foto baru
+        function removeEditPhoto() {
+            document.getElementById('editProductPhoto').value = '';
+            document.getElementById('editPreviewImage').src = '';
+            document.getElementById('editPhotoPreview').classList.remove('active');
+        }
+
+        // Submit Update Produk ke Supabase
+        async function updateProductSubmit() {
+            const productId = document.getElementById('editProductId').value;
+            const kategori  = document.getElementById('editProductCategory').value;
+            const nama      = document.getElementById('editProductName').value.trim();
+            const deskripsi = document.getElementById('editProductDescription').value.trim();
+            const harga     = document.getElementById('editProductPrice').value;
+            const newPhoto  = document.getElementById('editProductPhoto').files[0];
+
+            if (!nama || !harga) {
+                alert('Nama Produk dan Harga harus diisi!');
+                return;
+            }
+
+            try {
+                let photoUrl = null;
+
+                // Upload foto baru jika ada
+                if (newPhoto) {
+                    const fileName = `${productId}-${Date.now()}-${newPhoto.name}`;
+                    const { error: uploadError } = await supabaseClient
+                        .storage
+                        .from('aset')
+                        .upload(fileName, newPhoto, { upsert: true });
+
+                    if (uploadError) {
+                        console.error('Upload photo error:', uploadError);
+                        alert('Gagal mengupload foto baru!');
+                        return;
+                    }
+
+                    const { data: publicUrlData } = supabaseClient
+                        .storage
+                        .from('aset')
+                        .getPublicUrl(fileName);
+
+                    photoUrl = publicUrlData.publicUrl;
+                }
+
+                // Siapkan data update
+                const updateData = {
+                    kategori,
+                    nama_produk: nama,
+                    deskripsi,
+                    harga: parseFloat(harga)
+                };
+
+                if (photoUrl) updateData.photo = photoUrl;
+
+                const { error } = await supabaseClient
+                    .from('produk')
+                    .update(updateData)
+                    .eq('id', productId);
+
+                if (error) {
+                    console.error('Update product error:', error);
+                    alert('Gagal mengupdate produk!');
+                    return;
+                }
+
+                alert('Produk berhasil diupdate!');
+                closeEditProductModal();
+
+                // Reload semua kategori
+                loadProducts('coffee');
+                loadProducts('noncoffee');
+                loadProducts('snack');
+
+            } catch(e) {
+                console.error('Update product error:', e);
+                alert('Terjadi kesalahan saat mengupdate produk!');
+            }
         }
 
         // Delete Product (placeholder)
